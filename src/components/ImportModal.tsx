@@ -1,9 +1,13 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useRef, ChangeEvent, useCallback } from 'react'
 import Papa from 'papaparse'
 import { supabase } from '@/lib/supabase'
 import { D7FieldMapping } from '@/types'
+import { Modal } from './ui/Modal'
+import { Button } from './ui/Button'
+import { Select } from './ui/Select'
+import { toast } from 'sonner'
 
 interface ImportModalProps {
   onClose: () => void
@@ -59,8 +63,9 @@ export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
   const [progress, setProgress] = useState(0)
   const [importedCount, setImportedCount] = useState(0)
   const [errors, setErrors] = useState<string[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
     if (!selectedFile) return
 
@@ -94,7 +99,7 @@ export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
         setStep('mapping')
       },
       error: (error) => {
-        setErrors([`Error parsing CSV: ${error.message}`])
+        toast.error(`CSV parse error: ${error.message}`)
       },
     })
   }, [])
@@ -171,176 +176,174 @@ export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
         setImportedCount(imported)
         setErrors(importErrors)
         setStep('complete')
+
+        if (importErrors.length === 0) {
+          toast.success(`Imported ${imported} businesses successfully`)
+        } else {
+          toast.error(`Import completed with ${importErrors.length} errors`)
+        }
       },
       error: (error) => {
-        setErrors([`Error parsing CSV: ${error.message}`])
+        toast.error(`CSV parse error: ${error.message}`)
         setStep('complete')
       },
     })
   }, [file, mappings])
 
+  const resetModal = useCallback(() => {
+    setFile(null)
+    setCsvData([])
+    setHeaders([])
+    setStep('upload')
+    if (fileInputRef.current) fileInputRef.current.value = ''
+    onClose()
+  }, [onClose])
+
+  const columnOptions = headers.map(h => ({ value: h, label: h }))
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-clay-200">
-          <h2 className="text-lg font-semibold text-clay-900">Import D7 Lead Finder CSV</h2>
-          <button
-            onClick={onClose}
-            className="text-clay-400 hover:text-clay-600 transition-colors"
+    <Modal
+      isOpen={true}
+      onClose={resetModal}
+      title="Import D7 Lead Finder CSV"
+      size="lg"
+      footer={
+        step === 'mapping' ? (
+          <>
+            <Button variant="secondary" onClick={resetModal}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleImport}
+              disabled={!file}
+            >
+              Import {csvData.length > 0 && `(${csvData.length}+ rows)`}
+            </Button>
+          </>
+        ) : step === 'complete' ? (
+          <Button
+            onClick={() => onImportComplete(importedCount)}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 140px)' }}>
-          {step === 'upload' && (
-            <div className="text-center py-8">
-              <div className="mx-auto w-16 h-16 bg-clay-100 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-clay-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-medium text-clay-900 mb-2">Upload D7 Lead Finder CSV</h3>
-              <p className="text-sm text-clay-500 mb-2">
-                Expected columns: BusinessName, PersonName, Email, WebsiteURL, Gmaps_URL, Rating, Reviews
-              </p>
-              <p className="text-xs text-clay-400 mb-6">
-                Plus star reviews: 1-5 Star Reviews, 1-2 Star Reviews w/ Media
-              </p>
-              <label className="inline-block">
-                <input
-                  type="file"
-                  accept=".csv"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-                <span className="clay-btn-primary cursor-pointer">
-                  Choose File
-                </span>
-              </label>
+            Done
+          </Button>
+        ) : null
+      }
+    >
+      <div className="space-y-6">
+        {step === 'upload' && (
+          <div className="text-center py-8">
+            <div className="mx-auto w-16 h-16 bg-clay-100 rounded-full flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-clay-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
             </div>
-          )}
+            <h3 className="text-lg font-medium text-clay-900 mb-2">Upload D7 Lead Finder CSV</h3>
+            <p className="text-sm text-clay-500 mb-2">
+              Expected columns: BusinessName, PersonName, Email, WebsiteURL, Gmaps_URL, Rating, Reviews
+            </p>
+            <p className="text-xs text-clay-400 mb-6">
+              Plus star reviews: 1-5 Star Reviews, 1-2 Star Reviews w/ Media
+            </p>
+            <label className="inline-block">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <Button variant="primary">
+                Choose File
+              </Button>
+            </label>
+          </div>
+        )}
 
-          {step === 'mapping' && (
-            <div>
-              <h3 className="text-lg font-medium text-clay-900 mb-4">
-                Map CSV Columns
-              </h3>
-              <p className="text-sm text-clay-500 mb-6">
-                Found {csvData.length} rows. Preview and adjust field mappings below.
-              </p>
+        {step === 'mapping' && (
+          <div>
+            <h3 className="text-lg font-medium text-clay-900 mb-4">
+              Map CSV Columns
+            </h3>
+            <p className="text-sm text-clay-500 mb-6">
+              Found {csvData.length} rows. Preview and adjust field mappings below.
+            </p>
 
-              {/* Preview Table */}
-              <div className="mb-6 overflow-x-auto">
-                <table className="clay-table text-xs">
-                  <thead>
-                    <tr>
+            {/* Preview Table */}
+            <div className="mb-6 overflow-x-auto">
+              <table className="clay-table text-xs">
+                <thead>
+                  <tr>
+                    {headers.slice(0, 6).map(h => (
+                      <th key={h}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {csvData.slice(0, 3).map((row, i) => (
+                    <tr key={i}>
                       {headers.slice(0, 6).map(h => (
-                        <th key={h}>{h}</th>
+                        <td key={h}>{row[h]}</td>
                       ))}
                     </tr>
-                  </thead>
-                  <tbody>
-                    {csvData.slice(0, 3).map((row, i) => (
-                      <tr key={i}>
-                        {headers.slice(0, 6).map(h => (
-                          <td key={h}>{row[h]}</td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-              {/* Field Mappings */}
-              <div className="grid grid-cols-2 gap-4">
-                {(Object.keys(DEFAULT_MAPPINGS) as (keyof D7FieldMapping)[]).map(field => (
-                  <div key={field}>
-                    <label className="block text-sm font-medium text-clay-700 mb-1 capitalize">
-                      {field.replace(/_/g, ' ')}
-                    </label>
-                    <select
-                      value={mappings[field]}
-                      onChange={(e) => handleMappingChange(field, e.target.value)}
-                      className="clay-input"
-                    >
-                      <option value="">-- Select Column --</option>
-                      {headers.map(h => (
-                        <option key={h} value={h}>{h}</option>
-                      ))}
-                    </select>
-                  </div>
-                ))}
+            {/* Field Mappings */}
+            <div className="grid grid-cols-2 gap-4">
+              {(Object.keys(DEFAULT_MAPPINGS) as (keyof D7FieldMapping)[]).map(field => (
+                <Select
+                  key={field}
+                  label={field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                  value={mappings[field]}
+                  onChange={(v) => handleMappingChange(field, v)}
+                  options={[{ value: '', label: '-- Select Column --' }, ...columnOptions]}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {step === 'importing' && (
+          <div className="text-center py-8">
+            <div className="mb-4">
+              <div className="w-full bg-clay-200 rounded-full h-3">
+                <div
+                  className="bg-accent-blue h-3 rounded-full transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                />
               </div>
             </div>
-          )}
+            <p className="text-lg font-medium text-clay-900">Importing...</p>
+            <p className="text-sm text-clay-500">{progress}% complete</p>
+          </div>
+        )}
 
-          {step === 'importing' && (
-            <div className="text-center py-8">
-              <div className="mb-4">
-                <div className="w-full bg-clay-200 rounded-full h-3">
-                  <div
-                    className="bg-accent-blue h-3 rounded-full transition-all duration-300"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-              </div>
-              <p className="text-lg font-medium text-clay-900">Importing...</p>
-              <p className="text-sm text-clay-500">{progress}% complete</p>
+        {step === 'complete' && (
+          <div className="text-center py-8">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
             </div>
-          )}
-
-          {step === 'complete' && (
-            <div className="text-center py-8">
-              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+            <h3 className="text-lg font-medium text-clay-900 mb-2">Import Complete</h3>
+            <p className="text-sm text-clay-500 mb-4">
+              Successfully imported {importedCount} businesses
+            </p>
+            {errors.length > 0 && (
+              <div className="text-left bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <p className="text-sm font-medium text-red-800 mb-2">Errors:</p>
+                <ul className="text-xs text-red-700 list-disc list-inside">
+                  {errors.map((err, i) => (
+                    <li key={i}>{err}</li>
+                  ))}
+                </ul>
               </div>
-              <h3 className="text-lg font-medium text-clay-900 mb-2">Import Complete</h3>
-              <p className="text-sm text-clay-500 mb-4">
-                Successfully imported {importedCount} businesses
-              </p>
-              {errors.length > 0 && (
-                <div className="text-left bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                  <p className="text-sm font-medium text-red-800 mb-2">Errors:</p>
-                  <ul className="text-xs text-red-700 list-disc list-inside">
-                    {errors.map((err, i) => (
-                      <li key={i}>{err}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-end px-6 py-4 border-t border-clay-200 bg-clay-50">
-          {step === 'mapping' && (
-            <>
-              <button onClick={onClose} className="clay-btn-secondary mr-3">
-                Cancel
-              </button>
-              <button onClick={handleImport} className="clay-btn-primary">
-                Import {csvData.length} Rows
-              </button>
-            </>
-          )}
-          {step === 'complete' && (
-            <button
-              onClick={() => onImportComplete(importedCount)}
-              className="clay-btn-primary"
-            >
-              Done
-            </button>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
-    </div>
+    </Modal>
   )
 }

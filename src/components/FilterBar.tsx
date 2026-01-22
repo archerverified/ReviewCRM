@@ -1,6 +1,8 @@
 'use client'
 
 import { FilterState, Tag, PIPELINE_STAGES, EMAIL_VERIFICATION_STATUSES, EMAIL_OUTREACH_STATUSES } from '@/types'
+import { Input } from './ui/Input'
+import { Button } from './ui/Button'
 
 interface FilterBarProps {
   filters: FilterState
@@ -57,26 +59,26 @@ export function FilterBar({ filters, onFilterChange, tags }: FilterBarProps) {
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3">
       {/* Search Input */}
-      <div className="relative flex-1 min-w-[200px] max-w-md">
-        <svg
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-clay-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
-        <input
-          type="text"
+      <div className="flex-1 min-w-[200px] max-w-md">
+        <Input
           placeholder="Search businesses..."
           value={filters.search}
           onChange={(e) => handleSearchChange(e.target.value)}
-          className="clay-input pl-10"
+          icon={
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          }
         />
       </div>
 
@@ -175,12 +177,9 @@ export function FilterBar({ filters, onFilterChange, tags }: FilterBarProps) {
 
       {/* Clear Filters */}
       {hasActiveFilters && (
-        <button
-          onClick={handleClearFilters}
-          className="text-sm text-clay-500 hover:text-clay-700 transition-colors"
-        >
+        <Button variant="ghost" size="sm" onClick={handleClearFilters}>
           Clear filters
-        </button>
+        </Button>
       )}
     </div>
   )

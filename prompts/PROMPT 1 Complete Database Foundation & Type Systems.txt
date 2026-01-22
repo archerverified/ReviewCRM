@@ -1,0 +1,374 @@
+PROMPT 1: Database Foundation & Type System
+
+Execution Instructions
+Prompt and absorb the following agents and skills commands from the workspace before executing: 
+.claude\agents\database-admin.md
+.claude\agents\database-architect.md
+.claude\agents\database-optimizer.md
+.claude\agents\typescript-pro.md
+.claude\agents\expert-nextjs-developer.md
+.claude\skills\agile-product-owner
+.claude\skills\ceo-advisor
+
+PROMPT 1 Complete Database Foundation & Type Systems.txt
+Target Environment: VSCode with Opus 4.5 in Plan Mode
+Execution Order: Run this prompt first, verify completion before requesting Prompt 2
+Critical Success Factors:
+
+All 3 files must be generated completely (no placeholders)
+SQL schema must execute without errors in Supabase
+TypeScript types must match database schema exactly
+
+You are a senior database architect and TypeScript engineer building the foundation for ReviewCRM, a reputation management CRM for 2ndimpression.co.
+
+BUSINESS CONTEXT:
+- Service: Remove 1-2 star Google reviews with media (photos/videos)
+- Pricing: $125/review (1-24), $110/review (25-49), $90/review (50+)
+- Cost: $20/review (84% margin)
+- Pipeline: 19-stage sales pipeline from lead to payment
+- Email: Automated outreach via Plusvibe.ai with AI-personalized messages
+- Target: Hotels, restaurants, auto shops, tattoo parlors in major US cities
+
+DATABASE REQUIREMENTS:
+Create complete Supabase schema with auto-calculated pricing, 19-stage pipeline, and full type safety.
+
+---
+
+FILE 1: /supabase/schema.sql
+
+Create production-ready PostgreSQL schema with these EXACT specifications:
+
+businesses table:
+- id (UUID primary key, auto-generated)
+- business_name (TEXT, required)
+- contact_name (TEXT, optional)
+- email (TEXT, optional, validated format)
+- phone (TEXT, optional, validated E.164 format)
+- city (TEXT)
+- state (TEXT)
+
+Review counts (from D7 Lead Finder scrape):
+- google_reviews_count (INTEGER, default 0)
+- yelp_reviews_count (INTEGER, default 0)
+- facebook_reviews_count (INTEGER, default 0)
+- media_reviews_count (INTEGER, GENERATED column = sum of above three)
+- negative_reviews_count (INTEGER, default 0) - this is what we sell
+
+AUTO-CALCULATED PRICING (CRITICAL - use GENERATED ALWAYS AS):
+- pricing_tier (TEXT, GENERATED):
+  * 1-24 reviews = 'bronze'
+  * 25-49 reviews = 'silver'
+  * 50+ reviews = 'gold'
+  
+- price_per_review (NUMERIC, GENERATED):
+  * bronze = 125
+  * silver = 110
+  * gold = 90
+  
+- total_project_value (NUMERIC, GENERATED):
+  * negative_reviews_count × price_per_review
+
+Pipeline tracking:
+- pipeline_stage (TEXT, default 'lead_identified')
+- email_status (TEXT, default 'not_sent')
+- personalized_message (TEXT) - AI-generated outreach
+- website_url (TEXT)
+- industry (TEXT)
+- notes (TEXT)
+- campaign_id (UUID, foreign key to campaigns)
+
+Timestamps:
+- created_at (TIMESTAMPTZ, default NOW())
+- updated_at (TIMESTAMPTZ, default NOW())
+- last_contacted_at (TIMESTAMPTZ)
+
+Constraints:
+- Email regex validation
+- Phone E.164 validation
+
+19-STAGE PIPELINE ENUM (EXACT STAGES):
+Create enum type: pipeline_stage_enum with these exact values:
+'lead_identified', 'contact_info_verified', 'initial_outreach_sent', 'follow_up_1', 'follow_up_2', 'follow_up_3', 'responded_interested', 'responded_not_interested', 'meeting_scheduled', 'proposal_sent', 'negotiation', 'contract_signed', 'payment_received', 'work_in_progress', 'completed', 'churned', 'unresponsive', 'disqualified', 'archived'
+
+EMAIL STATUS ENUM:
+Create enum type: email_status_enum with values:
+'not_sent', 'sent', 'opened', 'clicked', 'replied', 'bounced', 'unsubscribed'
+
+campaigns table:
+- id (UUID primary key)
+- name (TEXT, required, unique)
+- description (TEXT)
+- template (TEXT) - AI personalization template
+- custom_instructions (TEXT)
+- businesses_count (INTEGER, default 0)
+- emails_sent (INTEGER, default 0)
+- emails_opened (INTEGER, default 0)
+- replies_received (INTEGER, default 0)
+- deals_closed (INTEGER, default 0)
+- total_revenue (NUMERIC, default 0)
+- status (TEXT, default 'draft') - values: draft, active, paused, completed
+- plusvibe_campaign_id (TEXT)
+- plusvibe_exported_at (TIMESTAMPTZ)
+- created_at (TIMESTAMPTZ)
+- updated_at (TIMESTAMPTZ)
+
+tags table:
+- id (UUID primary key)
+- name (TEXT, required, unique)
+- color (TEXT, default '#3b82f6')
+- created_at (TIMESTAMPTZ)
+
+business_tags junction table:
+- business_id (UUID, foreign key to businesses, CASCADE delete)
+- tag_id (UUID, foreign key to tags, CASCADE delete)
+- created_at (TIMESTAMPTZ)
+- PRIMARY KEY (business_id, tag_id)
+
+stage_history table (audit trail):
+- id (UUID primary key)
+- business_id (UUID, foreign key to businesses, CASCADE delete)
+- old_stage (TEXT)
+- new_stage (TEXT)
+- changed_by (TEXT) - user email or 'system'
+- notes (TEXT)
+- changed_at (TIMESTAMPTZ, default NOW())
+
+INDEXES (CRITICAL FOR PERFORMANCE):
+- idx_businesses_pipeline_stage ON businesses(pipeline_stage)
+- idx_businesses_email_status ON businesses(email_status)
+- idx_businesses_campaign_id ON businesses(campaign_id)
+- idx_businesses_created_at ON businesses(created_at DESC)
+- idx_businesses_city ON businesses(city)
+- idx_businesses_pricing_tier ON businesses((pricing_tier))
+- idx_stage_history_business_id ON stage_history(business_id)
+- idx_stage_history_changed_at ON stage_history(changed_at DESC)
+
+TRIGGERS:
+1. Auto-update updated_at timestamp on UPDATE for businesses and campaigns tables
+2. Auto-track stage changes: When pipeline_stage changes, insert record into stage_history
+
+ROW LEVEL SECURITY (RLS):
+- Enable RLS on all tables
+- Create policy: "Allow all for authenticated users" - allows all operations for authenticated users
+- Apply to: businesses, campaigns, tags, business_tags, stage_history
+
+---
+
+FILE 2: src/types/index.ts
+
+Create comprehensive TypeScript types matching the database schema EXACTLY:
+
+Business interface with all columns:
+- All database columns with correct TypeScript types
+- UUID fields as string
+- TIMESTAMPTZ fields as string (ISO format)
+- NUMERIC fields as number
+- Generated columns included (pricing_tier, price_per_review, total_project_value)
+
+PipelineStage type:
+- Union type of all 19 pipeline stages (exact strings from enum)
+
+EmailStatus type:
+- Union type: 'not_sent' | 'sent' | 'opened' | 'clicked' | 'replied' | 'bounced' | 'unsubscribed'
+
+PricingTier type:
+- Union type: 'bronze' | 'silver' | 'gold'
+
+Campaign interface matching campaigns table
+
+Tag interface matching tags table
+
+BusinessTag interface matching business_tags table
+
+StageHistory interface matching stage_history table
+
+FilterState interface for UI:
+- search: string
+- stages: PipelineStage[]
+- emailStatuses: EmailStatus[]
+- tags: string[]
+- pricingTiers: PricingTier[]
+- cities: string[]
+- campaigns: string[]
+
+MetricCard interface:
+- title: string
+- value: string | number
+- change?: string
+- trend?: 'up' | 'down' | 'neutral'
+- description?: string
+
+PlusvibeExportRow interface (CSV format):
+- FirstName: string
+- LastName: string
+- Email: string
+- CompanyName: string
+- City: string
+- Phone: string
+- MediaReviews: number
+- NegativeReviews: number
+- PricingTier: string
+- ProjectValue: string
+- PersonalizedMessage: string
+
+D7LeadRow interface (import format):
+- 'Business Name': string
+- 'Email': string
+- 'Phone': string
+- 'City': string
+- 'State': string
+- 'Google Reviews': string
+- 'Yelp Reviews': string
+- 'Facebook Reviews': string
+- 'Website': string
+
+GenerateMessageRequest interface:
+- businessName: string
+- city: string
+- mediaReviews: number
+- negativeReviews: number
+- instructions?: string
+- template?: string
+
+GenerateMessageResponse interface:
+- message: string
+
+StageConfig interface:
+- stage: PipelineStage
+- label: string
+- color: string
+- description: string
+- order: number
+
+Export const PIPELINE_STAGES array with all 19 stages configured:
+- Each stage with: stage value, label (display name), color (hex), description, order (1-19)
+- Color coding suggestions:
+  * Lead stages (1-6): gray/blue tones
+  * Interested (7): green
+  * Not interested (8): red
+  * Meeting/Proposal (9-11): purple/orange
+  * Closed (12-15): green/blue
+  * Lost (16-19): gray/red
+
+---
+
+FILE 3: src/lib/supabase.ts
+
+Create Supabase client with comprehensive query helpers:
+
+Initialize Supabase client:
+- Use createClientComponentClient from @supabase/auth-helpers-nextjs
+- Import Database type from @/types/database (will be auto-generated)
+
+Export businessQueries object with methods:
+
+getAll(): Promise<Business[]>
+- Select all businesses
+- Order by created_at DESC
+- Return as Business[]
+
+getByStage(stage: PipelineStage): Promise<Business[]>
+- Filter by pipeline_stage
+- Order by updated_at DESC
+
+getByFilters(filters: FilterState): Promise<Business[]>
+- Apply search filter (OR query on business_name, email, city using ilike)
+- Apply stages filter (IN query if array not empty)
+- Apply emailStatuses filter (IN query if array not empty)
+- Apply pricingTiers filter (IN query if array not empty)
+- Apply cities filter (IN query if array not empty)
+- Apply campaigns filter (IN query if array not empty)
+- Order by created_at DESC
+
+updateStage(id: string, newStage: PipelineStage): Promise<void>
+- Update pipeline_stage and updated_at
+- Error handling with throw
+
+bulkUpdateStage(ids: string[], newStage: PipelineStage): Promise<void>
+- Update multiple businesses at once
+- Use IN query
+
+bulkUpdateEmailStatus(ids: string[], status: EmailStatus): Promise<void>
+- Update email_status for multiple businesses
+
+addTag(businessId: string, tagId: string): Promise<void>
+- Insert into business_tags junction table
+
+create(business: Partial<Business>): Promise<Business>
+- Insert single business
+- Return created business with .select().single()
+
+bulkCreate(businesses: Partial<Business>[]): Promise<Business[]>
+- Insert multiple businesses
+- Return array of created businesses
+
+updatePersonalizedMessage(id: string, message: string): Promise<void>
+- Update personalized_message field
+
+delete(id: string): Promise<void>
+- Delete business by id
+
+Export campaignQueries object:
+
+getAll(): Promise<Campaign[]>
+- Select all campaigns
+- Order by created_at DESC
+
+create(campaign: Partial<Campaign>): Promise<Campaign>
+- Insert campaign
+- Return created campaign
+
+Export tagQueries object:
+
+getAll(): Promise<Tag[]>
+- Select all tags
+- Order by name
+
+create(tag: Partial<Tag>): Promise<Tag>
+- Insert tag
+- Return created tag
+
+All methods must:
+- Include proper try/catch with throw on error
+- Use proper TypeScript typing
+- Handle null/undefined cases
+- Use Supabase client methods correctly
+
+---
+
+VALIDATION CHECKLIST:
+- All 19 pipeline stages defined correctly in enum
+- Generated columns calculate properly (pricing_tier, price_per_review, total_project_value)
+- Pricing tiers: bronze ($125), silver ($110), gold ($90)
+- Indexes on high-query columns (pipeline_stage, email_status, campaign_id, created_at, city)
+- RLS policies enabled on all tables
+- TypeScript types match database schema exactly
+- Query helpers include error handling
+- Triggers track stage changes automatically
+- Email/phone validation constraints
+- Foreign key relationships with CASCADE delete
+
+OUTPUT: Complete, production-ready code for all 3 files with NO placeholders, NO comments like "add more here". Every single line must be runnable immediately.
+
+Post-Execution Verification
+After running this prompt in VSCode, verify:
+File 1 Verification:
+
+Copy the generated schema.sql content
+Open Supabase SQL Editor (https://cvchmlaouwwqwurckssw.supabase.co → SQL Editor)
+Paste and execute the SQL
+Confirm: No errors, all tables created, indexes present
+
+File 2 Verification:
+
+Check src/types/index.ts exists
+Verify PIPELINE_STAGES array has 19 entries
+TypeScript build passes: npx tsc --noEmit
+
+File 3 Verification:
+
+Check src/lib/supabase.ts exists
+Verify all query methods present (getAll, getByStage, bulkCreate, etc.)
+No TypeScript errors
+
+Run if everything is 100% perfect: .claude/commands/commit.md and use this command after

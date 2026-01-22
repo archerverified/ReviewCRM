@@ -1,0 +1,655 @@
+PROMPT 3: AI Integration & CSV Export (Firecrawl Edition)
+
+EXECUTION INSTRUCTIONS:
+Prompt and absorb the following agents and skills commands from the workspace before executing:
+.claude\agents\api-architect.md
+.claude\agents\task-decomposition-expert.md
+.claude\agents\fullstack-developer.md
+.claude\agents\api-security-audit.md
+.claude\agents\ai-engineer.md
+.claude\agents\database-architect.md
+.claude\skills\api-integration-specialis
+.claude\skills\excel-analysist
+.claude\skills\xlsx
+.claude\commands\nextjs-api-tester.md
+
+Target Environment: VSCode with Opus 4.5 in Plan Mode
+Dependencies Required: sonner
+Execution Order: Run after Prompt 2 completion
+Critical Success Factors:
+- All 3 files must be generated completely
+- Firecrawl API integration functional
+- Rate limiting implemented (10/min per IP)
+- Batch processing with 5 concurrent maximum
+- RFC 4180 CSV compliance
+- No placeholder code or TODOs
+
+---
+
+THE PROMPT:
+
+You are a senior full-stack engineer building AI-powered personalization and CSV export for ReviewCRM using Firecrawl.dev agent API as a placeholder for future Claude AI integration.
+
+BUSINESS CONTEXT:
+- Service: 2ndimpression.co reputation management
+- AI generates personalized cold outreach messages for each business
+- Messages reference: business name, city, negative review count with media
+- Service pitch: Remove 1-2 star reviews with media, 100% guarantee, 24-48hr results
+- Tone: Conversational and helpful, NOT salesy
+- Export format: Plusvibe.ai CSV with FirstName, LastName, Email, CompanyName, City, Phone, MediaReviews, NegativeReviews, PricingTier, ProjectValue, PersonalizedMessage
+
+FIRECRAWL API CONFIGURATION:
+- Endpoint: https://api.firecrawl.dev/v1/agent
+- Authentication: Bearer token from FIRECRAWL_API_KEY environment variable
+- API Key: fc-6588659a89ba4128b0306c393f150f3a
+- Rate limiting: 10 requests/min per IP (enforced server-side)
+- Response format: JSON with result/output/response field
+- Mode: autonomous agent for content generation
+
+TECHNICAL REQUIREMENTS:
+- Next.js 14 App Router API routes
+- TypeScript strict mode
+- Error handling for all API failures
+- Rate limiting with in-memory store (Redis for production)
+- Batch processing: maximum 5 concurrent API calls
+- Progress tracking during bulk operations
+- CSV RFC 4180 compliance (proper escaping)
+- Currency formatting with US locale
+- UTF-8 BOM for Excel compatibility
+
+TASK: Create 3 production-ready files with complete, runnable code.
+
+---
+
+FILE 1: src/app/api/generate-message/route.ts
+
+Create Next.js API route for AI message generation:
+
+REQUIREMENTS:
+- POST endpoint accepting JSON body
+- Request validation for required fields (businessName, city, negativeReviews)
+- Rate limiting: 10 requests per minute per IP address using in-memory Map
+- Firecrawl agent API integration with proper error handling
+- Comprehensive error handling with specific status codes (400, 429, 401, 500)
+- Response cleaning: remove quotes, normalize line breaks, strip subject/greetings
+- Minimum message length validation (50 characters)
+
+REQUEST INTERFACE:
+- businessName: string (required)
+- city: string (required)
+- mediaReviews: number
+- negativeReviews: number (required)
+- instructions?: string (optional custom instructions)
+- template?: string (optional template structure)
+
+RESPONSE INTERFACE:
+- message: string (generated personalized message)
+
+ERROR HANDLING:
+- 400: Missing required fields
+- 429: Rate limit exceeded (both client-side and Firecrawl API)
+- 401/403: Invalid API credentials
+- 500: Configuration error or generation failure
+
+PROMPT ENGINEERING:
+Construct detailed prompt for Firecrawl agent with:
+- Business context (name, city, problem with specific numbers)
+- Service offering (removal guarantee, timeline, local success)
+- Tone requirements (conversational, not salesy)
+- Output constraints (no subject, no signature, no greetings like "Hi" or "Hello")
+- Start directly with addressing business situation
+- 3-4 sentences maximum
+- Optional custom instructions and template structure
+
+RATE LIMITER IMPLEMENTATION:
+- Use Map<string, { count: number; resetAt: number }>
+- Store IP address as key
+- 60-second window (60000ms)
+- Maximum 10 requests per window
+- Auto-reset when window expires
+
+RESPONSE CLEANING:
+- Trim whitespace
+- Remove surrounding quotes (single or double)
+- Normalize excessive line breaks (3+ to 2)
+- Strip "Subject:" lines
+- Remove greetings (Hi, Hello, Hey)
+- Validate minimum length (50 chars)
+
+IMPLEMENTATION:
+```typescript
+import { NextRequest, NextResponse } from 'next/server';
+
+interface GenerateMessageRequest {
+  businessName: string;
+  city: string;
+  mediaReviews: number;
+  negativeReviews: number;
+  instructions?: string;
+  template?: string;
+}
+
+interface GenerateMessageResponse {
+  message: string;
+}
+
+const requestCounts = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const record = requestCounts.get(ip);
+  
+  if (!record || now > record.resetAt) {
+    requestCounts.set(ip, { count: 1, resetAt: now + 60000 });
+    return true;
+  }
+  
+  if (record.count >= 10) {
+    return false;
+  }
+  
+  record.count++;
+  return true;
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+    
+    if (!checkRateLimit(ip)) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Maximum 10 requests per minute.' },
+        { status: 429 }
+      );
+    }
+
+    const body: GenerateMessageRequest = await req.json();
+    const { businessName, city, mediaReviews, negativeReviews, instructions, template } = body;
+
+    if (!businessName || !city || typeof negativeReviews !== 'number') {
+      return NextResponse.json(
+        { error: 'Missing required fields: businessName, city, negativeReviews' },
+        { status: 400 }
+      );
+    }
+
+    const apiKey = process.env.FIRECRAWL_API_KEY;
+    if (!apiKey) {
+      console.error('FIRECRAWL_API_KEY not configured in environment variables');
+      return NextResponse.json(
+        { error: 'AI service not configured. Please contact administrator.' },
+        { status: 500 }
+      );
+    }
+
+    const prompt = `Write a personalized 3-4 sentence cold email outreach message for a reputation management service.
+
+Business Details:
+- Name: ${businessName}
+- Location: ${city}
+- Problem: ${negativeReviews} negative reviews with photos/videos visible on Google, Yelp, and Facebook
+
+Service Offering:
+- Remove 1-2 star reviews containing media (photos/videos) permanently
+- 100% money-back guarantee if reviews aren't removed
+- Results delivered in 24-48 hours
+- Proven track record with businesses in ${city}
+
+${instructions ? `Additional instructions: ${instructions}` : ''}
+
+Tone Requirements:
+- Conversational and helpful, NOT salesy or pushy
+- Focus on the pain point (negative reviews with media hurting their business reputation)
+- Present the solution as quick and guaranteed
+- Use their business name naturally in the first sentence
+
+${template ? `Follow this template structure: ${template}` : ''}
+
+Output Requirements:
+- No subject line
+- No signature block
+- No greetings like "Hi" or "Hello"
+- Start directly with addressing their business situation
+- 3-4 sentences maximum
+- Professional but approachable tone`;
+
+    const response = await fetch('https://api.firecrawl.dev/v1/agent', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        prompt: prompt,
+        mode: 'autonomous'
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Firecrawl API error:', response.status, errorText);
+      
+      if (response.status === 429) {
+        return NextResponse.json(
+          { error: 'AI service rate limit exceeded. Please try again in a few moments.' },
+          { status: 429 }
+        );
+      }
+      
+      if (response.status === 401 || response.status === 403) {
+        return NextResponse.json(
+          { error: 'Invalid AI API credentials. Please contact administrator.' },
+          { status: 500 }
+        );
+      }
+      
+      throw new Error(`Firecrawl API returned status ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    const generatedMessage = data.result || data.output || data.response || data.message || '';
+
+    if (!generatedMessage || typeof generatedMessage !== 'string') {
+      console.error('Unexpected Firecrawl response format:', data);
+      return NextResponse.json(
+        { error: 'Failed to generate message. Invalid response format.' },
+        { status: 500 }
+      );
+    }
+
+    const cleanedMessage = generatedMessage
+      .trim()
+      .replace(/^["']|["']$/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/^Subject:.*\n/im, '')
+      .replace(/^(Hi|Hello|Hey)[,\s]+/i, '');
+
+    if (cleanedMessage.length < 50) {
+      console.warn('Generated message suspiciously short:', cleanedMessage);
+      return NextResponse.json(
+        { error: 'Generated message too short. Please try again.' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json<GenerateMessageResponse>({
+      message: cleanedMessage
+    });
+
+  } catch (error: any) {
+    console.error('Message generation error:', error);
+
+    return NextResponse.json(
+      { error: 'Failed to generate message. Please try again.' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+---
+
+FILE 2: src/lib/export.ts
+
+Create CSV export utility functions:
+
+REQUIREMENTS:
+- exportToPlusvibe: Convert Business[] to Plusvibe.ai CSV format
+- Proper CSV escaping per RFC 4180 (commas, quotes, newlines, carriage returns)
+- Currency formatting with US locale ($X,XXX.XX format)
+- Name parsing: split contact_name into FirstName/LastName, fallback to business_name
+- downloadCSV: Browser download functionality with UTF-8 BOM for Excel compatibility
+- generateExportFilename: Standardized filename (plusvibe-export-{campaign}-{YYYY-MM-DD-HHmm}.csv)
+
+PLUSVIBE CSV COLUMNS (exact order):
+1. FirstName
+2. LastName
+3. Email
+4. CompanyName
+5. City
+6. Phone
+7. MediaReviews
+8. NegativeReviews
+9. PricingTier
+10. ProjectValue
+11. PersonalizedMessage
+
+CSV ESCAPING RULES (RFC 4180):
+- Wrap in quotes if contains: comma, quote, newline, or carriage return
+- Double all quotes inside quoted values
+- Example: "He said ""hello""" for: He said "hello"
+
+CURRENCY FORMATTING:
+- US locale with $ symbol
+- Comma thousand separators
+- Two decimal places (.XX)
+- Example: $11,250.00
+
+NAME PARSING:
+- Split on first space
+- firstName = first word
+- lastName = remaining words joined
+- If no contact_name, use business_name for firstName, empty lastName
+
+FILENAME SANITIZATION:
+- Lowercase
+- Replace non-alphanumeric with hyphens
+- Remove leading/trailing hyphens
+- Format: plusvibe-export-{sanitized-campaign}-{date}-{time}.csv
+
+IMPLEMENTATION:
+```typescript
+import type { Business, PlusvibeExportRow } from '@/types';
+
+export function exportToPlusvibe(businesses: Business[], campaignName: string): string {
+  const headers = [
+    'FirstName',
+    'LastName',
+    'Email',
+    'CompanyName',
+    'City',
+    'Phone',
+    'MediaReviews',
+    'NegativeReviews',
+    'PricingTier',
+    'ProjectValue',
+    'PersonalizedMessage'
+  ];
+
+  const rows = businesses.map(business => {
+    const nameParts = (business.contact_name || business.business_name).split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+
+    const projectValue = `$${business.total_project_value.toLocaleString('en-US', { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    })}`;
+
+    const row: PlusvibeExportRow = {
+      FirstName: firstName,
+      LastName: lastName,
+      Email: business.email || '',
+      CompanyName: business.business_name,
+      City: business.city || '',
+      Phone: business.phone || '',
+      MediaReviews: business.media_reviews_count,
+      NegativeReviews: business.negative_reviews_count,
+      PricingTier: business.pricing_tier || 'bronze',
+      ProjectValue: projectValue,
+      PersonalizedMessage: business.personalized_message || ''
+    };
+
+    return row;
+  });
+
+  const csvRows = [headers.join(',')];
+  
+  rows.forEach(row => {
+    const values = headers.map(header => {
+      const value = String(row[header as keyof PlusvibeExportRow] || '');
+      
+      if (value.includes(',') || value.includes('"') || value.includes('\n') || value.includes('\r')) {
+        return `"${value.replace(/"/g, '""')}"`;
+      }
+      
+      return value;
+    });
+    
+    csvRows.push(values.join(','));
+  });
+
+  return csvRows.join('\n');
+}
+
+export function downloadCSV(content: string, filename: string): void {
+  const BOM = '\uFEFF';
+  const blob = new Blob([BOM + content], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+}
+
+export function generateExportFilename(campaignName: string): string {
+  const now = new Date();
+  const date = now.toISOString().slice(0, 10);
+  const time = now.toTimeString().slice(0, 5).replace(':', '');
+  
+  const sanitized = campaignName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+  
+  return `plusvibe-export-${sanitized}-${date}-${time}.csv`;
+}
+```
+
+---
+
+FILE 3: src/components/ExportButton.tsx
+
+Create export button component with AI message generation:
+
+REQUIREMENTS:
+- React client component with loading states
+- Identify businesses without personalized_message
+- Batch AI message generation (5 concurrent maximum)
+- Progress tracking and UI updates (current/total counter)
+- Supabase database updates for generated messages
+- Update local state array for immediate export
+- CSV export and browser download
+- Comprehensive error handling with user feedback
+- Success/failure count tracking
+- Toast notifications (sonner) for all states
+
+WORKFLOW:
+1. Check if businesses.length === 0 → show error toast
+2. Identify businesses without personalized_message
+3. If none need messages → export immediately
+4. If some need messages:
+   a. Show info toast: "Generating X personalized messages..."
+   b. Process in batches of 5 concurrently
+   c. For each business: call /api/generate-message
+   d. Update Supabase with generated message
+   e. Update local state array
+   f. Track progress and update UI
+   g. Count successes and failures
+5. Export all businesses to CSV
+6. Trigger browser download
+7. Display success/warning toast with counts
+
+BATCH PROCESSING:
+- Maximum 5 concurrent API calls (Promise.allSettled)
+- Process in chunks: batch 1-5, then 6-10, etc.
+- Update progress after each batch completes
+- Continue on failures (resilient processing)
+
+ERROR HANDLING:
+- Log failed businesses to console
+- Track failure count
+- Show warning toast if failures > 0
+- Still export successfully generated messages
+
+STATE MANAGEMENT:
+- exporting: boolean (loading state)
+- progress: { current: number; total: number }
+
+IMPLEMENTATION:
+```typescript
+'use client';
+
+import { useState } from 'react';
+import { Button } from './ui/Button';
+import { exportToPlusvibe, downloadCSV, generateExportFilename } from '@/lib/export';
+import type { Business, GenerateMessageRequest, GenerateMessageResponse } from '@/types';
+import { toast } from 'sonner';
+import { businessQueries } from '@/lib/supabase';
+
+interface ExportButtonProps {
+  businesses: Business[];
+  campaignName: string;
+  disabled?: boolean;
+}
+
+export function ExportButton({ businesses, campaignName, disabled }: ExportButtonProps) {
+  const [exporting, setExporting] = useState(false);
+  const [progress, setProgress] = useState({ current: 0, total: 0 });
+
+  const handleExport = async () => {
+    if (businesses.length === 0) {
+      toast.error('No businesses selected for export');
+      return;
+    }
+
+    setExporting(true);
+    setProgress({ current: 0, total: businesses.length });
+
+    try {
+      const businessesNeedingMessages = businesses.filter(b => !b.personalized_message);
+      
+      if (businessesNeedingMessages.length > 0) {
+        toast.info(`Generating ${businessesNeedingMessages.length} personalized messages...`);
+
+        const batchSize = 5;
+        const updatedBusinesses = [...businesses];
+        let successCount = 0;
+        let failureCount = 0;
+
+        for (let i = 0; i < businessesNeedingMessages.length; i += batchSize) {
+          const batch = businessesNeedingMessages.slice(i, i + batchSize);
+          
+          const results = await Promise.allSettled(
+            batch.map(async (business) => {
+              try {
+                const request: GenerateMessageRequest = {
+                  businessName: business.business_name,
+                  city: business.city || '',
+                  mediaReviews: business.media_reviews_count,
+                  negativeReviews: business.negative_reviews_count
+                };
+
+                const response = await fetch('/api/generate-message', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(request)
+                });
+
+                if (!response.ok) {
+                  const error = await response.json();
+                  throw new Error(error.error || 'Failed to generate message');
+                }
+
+                const data: GenerateMessageResponse = await response.json();
+                
+                await businessQueries.updatePersonalizedMessage(business.id, data.message);
+                
+                const index = updatedBusinesses.findIndex(b => b.id === business.id);
+                if (index !== -1) {
+                  updatedBusinesses[index] = {
+                    ...updatedBusinesses[index],
+                    personalized_message: data.message
+                  };
+                }
+
+                return { business, message: data.message };
+              } catch (error: any) {
+                console.error(`Failed to generate message for ${business.business_name}:`, error);
+                throw error;
+              }
+            })
+          );
+
+          const batchEnd = Math.min(i + batchSize, businessesNeedingMessages.length);
+          setProgress({ current: batchEnd, total: businessesNeedingMessages.length });
+
+          results.forEach(result => {
+            if (result.status === 'fulfilled') {
+              successCount++;
+            } else {
+              failureCount++;
+            }
+          });
+
+          console.log(`Batch ${Math.floor(i / batchSize) + 1}: ${results.filter(r => r.status === 'fulfilled').length}/${batch.length} successful`);
+        }
+
+        if (failureCount > 0) {
+          toast.warning(`Generated ${successCount} messages, ${failureCount} failed`);
+        }
+
+        const csvContent = exportToPlusvibe(updatedBusinesses, campaignName);
+        const filename = generateExportFilename(campaignName);
+        downloadCSV(csvContent, filename);
+
+        toast.success(`Exported ${businesses.length} businesses to ${filename}`);
+      } else {
+        const csvContent = exportToPlusvibe(businesses, campaignName);
+        const filename = generateExportFilename(campaignName);
+        downloadCSV(csvContent, filename);
+
+        toast.success(`Exported ${businesses.length} businesses to ${filename}`);
+      }
+
+    } catch (error: any) {
+      console.error('Export error:', error);
+      toast.error(`Export failed: ${error.message}`);
+    } finally {
+      setExporting(false);
+      setProgress({ current: 0, total: 0 });
+    }
+  };
+
+  return (
+    <Button
+      onClick={handleExport}
+      disabled={disabled || businesses.length === 0 || exporting}
+      loading={exporting}
+      leftIcon={
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+      }
+    >
+      {exporting ? (
+        `Generating messages... (${progress.current}/${progress.total})`
+      ) : (
+        `Export to Plusvibe (${businesses.length})`
+      )}
+    </Button>
+  );
+}
+```
+
+---
+
+VALIDATION CHECKLIST:
+- FIRECRAWL_API_KEY environment variable set
+- Sonner toast library installed (npm i sonner)
+- Rate limiting implemented (10/min per IP)
+- Batch processing with 5 concurrent maximum
+- RFC 4180 CSV escaping (commas, quotes, newlines)
+- US locale currency formatting ($X,XXX.XX)
+- UTF-8 BOM for Excel compatibility
+- Real-time progress indicator
+- Comprehensive error handling (400, 401, 429, 500)
+- Database updates for generated messages
+- Success/failure count tracking
+- Minimum message length validation (50 chars)
+- Response cleaning (quotes, line breaks, subject, greetings)
+
+DEPENDENCIES TO INSTALL:
+npm install sonner
+
+OUTPUT: Complete, production-ready code with NO placeholders. All error cases handled with specific status codes. All edge cases covered (empty arrays, missing data, API failures). TypeScript strict mode compliance. Proper async/await error handling throughout.
+
+Run if everything is 100% perfect: .claude/commands/commit.md and use this command after

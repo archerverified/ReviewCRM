@@ -10,32 +10,27 @@ interface CustomFieldInputProps {
 }
 
 const validateFieldName = (name: string): { valid: boolean; error?: string } => {
-  if (!name.trim()) {
+  const trimmedName = name.trim();
+
+  if (!trimmedName) {
     return { valid: false, error: 'Field name is required' };
   }
 
-  if (name.length < 3 || name.length > 50) {
-    return { valid: false, error: 'Field name must be 3-50 characters' };
+  if (trimmedName.length < 1 || trimmedName.length > 100) {
+    return { valid: false, error: 'Field name must be 1-100 characters' };
   }
 
-  const validPattern = /^[a-z0-9_]+$/;
-  if (!validPattern.test(name)) {
-    return { valid: false, error: 'Use only lowercase letters, numbers, and underscores' };
-  }
-
-  if (/^[0-9]/.test(name)) {
-    return { valid: false, error: 'Field name cannot start with a number' };
-  }
-
-  const reservedWords = ['select', 'from', 'where', 'order', 'by', 'group', 'table', 'insert', 'update', 'delete'];
-  if (reservedWords.includes(name.toLowerCase())) {
-    return { valid: false, error: 'This name is reserved, please choose another' };
+  // Allow letters, numbers, spaces, underscores, hyphens, dots, and common punctuation
+  // This matches most CSV column headers while preventing problematic characters
+  const validPattern = /^[a-zA-Z0-9\s_\-\.,'()&]+$/;
+  if (!validPattern.test(trimmedName)) {
+    return { valid: false, error: 'Field name contains invalid characters' };
   }
 
   return { valid: true };
 };
 
-export function CustomFieldInput({ onSave, onCancel, placeholder = 'e.g., lead_source' }: CustomFieldInputProps) {
+export function CustomFieldInput({ onSave, onCancel, placeholder = 'e.g., Atlanta' }: CustomFieldInputProps) {
   const [value, setValue] = useState('');
   const [validation, setValidation] = useState<{ valid: boolean; error?: string }>({ valid: false });
   const inputRef = useRef<HTMLInputElement>(null);
@@ -131,7 +126,7 @@ export function CustomFieldInput({ onSave, onCancel, placeholder = 'e.g., lead_s
 
       <div className="mt-2">
         <span id="field-helper" className="text-xs text-clay-500">
-          Use lowercase with underscores
+          Enter the exact column name from your CSV
         </span>
 
         {value && !validation.valid && validation.error && (

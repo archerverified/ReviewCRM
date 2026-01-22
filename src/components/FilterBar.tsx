@@ -1,6 +1,6 @@
 'use client'
 
-import { FilterState, Tag, PIPELINE_STAGES, EMAIL_STATUSES } from '@/types'
+import { FilterState, Tag, PIPELINE_STAGES, EMAIL_VERIFICATION_STATUSES, EMAIL_OUTREACH_STATUSES } from '@/types'
 
 interface FilterBarProps {
   filters: FilterState
@@ -20,11 +20,18 @@ export function FilterBar({ filters, onFilterChange, tags }: FilterBarProps) {
     onFilterChange({ ...filters, stages: newStages })
   }
 
-  const handleEmailStatusToggle = (status: string) => {
-    const newStatuses = filters.emailStatus.includes(status as any)
-      ? filters.emailStatus.filter(s => s !== status)
-      : [...filters.emailStatus, status as any]
-    onFilterChange({ ...filters, emailStatus: newStatuses })
+  const handleEmailVerificationToggle = (status: string) => {
+    const newStatuses = filters.emailVerificationStatuses.includes(status as any)
+      ? filters.emailVerificationStatuses.filter(s => s !== status)
+      : [...filters.emailVerificationStatuses, status as any]
+    onFilterChange({ ...filters, emailVerificationStatuses: newStatuses })
+  }
+
+  const handleEmailOutreachToggle = (status: string) => {
+    const newStatuses = filters.emailOutreachStatuses.includes(status as any)
+      ? filters.emailOutreachStatuses.filter(s => s !== status)
+      : [...filters.emailOutreachStatuses, status as any]
+    onFilterChange({ ...filters, emailOutreachStatuses: newStatuses })
   }
 
   const handleClearFilters = () => {
@@ -32,11 +39,20 @@ export function FilterBar({ filters, onFilterChange, tags }: FilterBarProps) {
       search: '',
       tags: [],
       stages: [],
-      emailStatus: [],
+      emailVerificationStatuses: [],
+      emailOutreachStatuses: [],
+      pricingTiers: [],
+      cities: [],
+      campaigns: [],
     })
   }
 
-  const hasActiveFilters = filters.search || filters.tags.length > 0 || filters.stages.length > 0 || filters.emailStatus.length > 0
+  const hasActiveFilters =
+    filters.search ||
+    filters.tags.length > 0 ||
+    filters.stages.length > 0 ||
+    filters.emailVerificationStatuses.length > 0 ||
+    filters.emailOutreachStatuses.length > 0
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -95,13 +111,13 @@ export function FilterBar({ filters, onFilterChange, tags }: FilterBarProps) {
         </div>
       </div>
 
-      {/* Email Status Filter */}
+      {/* Email Verification Filter */}
       <div className="relative group">
         <button className="clay-btn-secondary">
-          Email Status
-          {filters.emailStatus.length > 0 && (
+          Verification
+          {filters.emailVerificationStatuses.length > 0 && (
             <span className="ml-1.5 bg-accent-blue text-white text-xs px-1.5 py-0.5 rounded-full">
-              {filters.emailStatus.length}
+              {filters.emailVerificationStatuses.length}
             </span>
           )}
           <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,18 +125,49 @@ export function FilterBar({ filters, onFilterChange, tags }: FilterBarProps) {
           </svg>
         </button>
         <div className="absolute top-full left-0 mt-1 bg-white border border-clay-200 rounded-lg shadow-lg py-2 z-10 hidden group-hover:block min-w-[150px]">
-          {EMAIL_STATUSES.map(status => (
+          {EMAIL_VERIFICATION_STATUSES.map(status => (
             <label
               key={status}
               className="flex items-center px-3 py-1.5 hover:bg-clay-50 cursor-pointer"
             >
               <input
                 type="checkbox"
-                checked={filters.emailStatus.includes(status)}
-                onChange={() => handleEmailStatusToggle(status)}
+                checked={filters.emailVerificationStatuses.includes(status)}
+                onChange={() => handleEmailVerificationToggle(status)}
                 className="w-4 h-4 rounded border-clay-300 text-accent-blue focus:ring-accent-blue"
               />
               <span className="ml-2 text-sm text-clay-700 capitalize">{status}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Email Outreach Filter */}
+      <div className="relative group">
+        <button className="clay-btn-secondary">
+          Outreach
+          {filters.emailOutreachStatuses.length > 0 && (
+            <span className="ml-1.5 bg-accent-blue text-white text-xs px-1.5 py-0.5 rounded-full">
+              {filters.emailOutreachStatuses.length}
+            </span>
+          )}
+          <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div className="absolute top-full left-0 mt-1 bg-white border border-clay-200 rounded-lg shadow-lg py-2 z-10 hidden group-hover:block min-w-[150px]">
+          {EMAIL_OUTREACH_STATUSES.map(status => (
+            <label
+              key={status}
+              className="flex items-center px-3 py-1.5 hover:bg-clay-50 cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                checked={filters.emailOutreachStatuses.includes(status)}
+                onChange={() => handleEmailOutreachToggle(status)}
+                className="w-4 h-4 rounded border-clay-300 text-accent-blue focus:ring-accent-blue"
+              />
+              <span className="ml-2 text-sm text-clay-700 capitalize">{status.replace('_', ' ')}</span>
             </label>
           ))}
         </div>

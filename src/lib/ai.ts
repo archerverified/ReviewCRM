@@ -45,7 +45,7 @@ State: ${business.state || ''}
 Total Media Reviews: ${business.total_media_reviews}
 1-Star Media Reviews: ${business.one_star_media_reviews}
 2-Star Media Reviews: ${business.two_star_media_reviews}
-Website: ${business.website || 'Not available'}
+Website: ${business.website_url || 'Not available'}
 
 Write ONLY the email body (no subject line, no "Hi" or signature). Start directly with the personalized opening.`
 

@@ -36,8 +36,8 @@ function StageCellRenderer(props: ICellRendererParams) {
   )
 }
 
-// Custom cell renderer for email status
-function EmailStatusRenderer(props: ICellRendererParams) {
+// Custom cell renderer for email verification status (Brainzey)
+function EmailVerificationRenderer(props: ICellRendererParams) {
   const statusColors: Record<string, string> = {
     good: 'text-green-600',
     risky: 'text-yellow-600',
@@ -77,6 +77,19 @@ function TierRenderer(props: ICellRendererParams) {
   )
 }
 
+// Custom cell renderer for rating
+function RatingRenderer(props: ICellRendererParams) {
+  const value = props.value
+  if (value === null || value === undefined) {
+    return <span className="text-clay-400">-</span>
+  }
+  return (
+    <span className="font-medium text-clay-900">
+      {value.toFixed(1)}
+    </span>
+  )
+}
+
 export function BusinessGrid({ businesses, selectedRows, onSelectionChange, onBusinessUpdate }: BusinessGridProps) {
   const gridRef = useRef<AgGridReact>(null)
 
@@ -96,22 +109,32 @@ export function BusinessGrid({ businesses, selectedRows, onSelectionChange, onBu
       minWidth: 180,
     },
     {
-      field: 'phone',
-      headerName: 'Phone',
-      flex: 1,
-      minWidth: 120,
-    },
-    {
       field: 'city',
       headerName: 'City',
       flex: 1,
       minWidth: 100,
     },
     {
+      field: 'google_rating',
+      headerName: 'Rating',
+      flex: 0.6,
+      minWidth: 70,
+      cellRenderer: RatingRenderer,
+      type: 'numericColumn',
+    },
+    {
       field: 'total_media_reviews',
       headerName: 'Media Reviews',
       flex: 0.8,
       minWidth: 100,
+      type: 'numericColumn',
+    },
+    {
+      field: 'projected_rating',
+      headerName: 'Projected',
+      flex: 0.6,
+      minWidth: 80,
+      cellRenderer: RatingRenderer,
       type: 'numericColumn',
     },
     {
@@ -123,18 +146,18 @@ export function BusinessGrid({ businesses, selectedRows, onSelectionChange, onBu
     },
     {
       field: 'total_project_value',
-      headerName: 'Project Value',
+      headerName: 'Value',
       flex: 1,
-      minWidth: 110,
+      minWidth: 100,
       cellRenderer: CurrencyRenderer,
       type: 'numericColumn',
     },
     {
-      field: 'email_status',
-      headerName: 'Email Status',
+      field: 'email_verification_status',
+      headerName: 'Email',
       flex: 0.8,
-      minWidth: 100,
-      cellRenderer: EmailStatusRenderer,
+      minWidth: 90,
+      cellRenderer: EmailVerificationRenderer,
     },
     {
       field: 'pipeline_stage',
@@ -184,8 +207,8 @@ export function BusinessGrid({ businesses, selectedRows, onSelectionChange, onBu
         // Log stage change to history
         await supabase.from('stage_history').insert({
           business_id: data.id,
-          from_stage: event.oldValue,
-          to_stage: newValue,
+          old_stage: event.oldValue,
+          new_stage: newValue,
         })
         onBusinessUpdate()
       }

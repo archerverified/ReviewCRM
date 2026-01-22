@@ -3,41 +3,51 @@
 import { useState, useCallback } from 'react'
 import Papa from 'papaparse'
 import { supabase } from '@/lib/supabase'
-import { calculatePricing, D7FieldMapping } from '@/types'
+import { D7FieldMapping } from '@/types'
 
 interface ImportModalProps {
   onClose: () => void
   onImportComplete: (count: number) => void
 }
 
-// Default D7 Lead Finder field mappings
+// Default D7 Lead Finder field mappings (matching exact CSV column names)
 const DEFAULT_MAPPINGS: D7FieldMapping = {
-  business_name: 'Business Name',
+  business_name: 'BusinessName',
+  contact_name: 'PersonName',
   email: 'Email',
-  phone: 'Phone',
-  website: 'Website',
-  address: 'Address',
-  city: 'City',
-  state: 'State',
-  zip: 'Zip',
-  total_reviews: 'Total Reviews',
-  one_star_media_reviews: '1-Star Media Reviews',
-  two_star_media_reviews: '2-Star Media Reviews',
+  website_url: 'WebsiteURL',
+  gmaps_url: 'Gmaps_URL',
+  city: '',
+  state: '',
+  google_rating: 'Rating',
+  total_reviews: 'Reviews',
+  one_star_reviews: '1 Star Reviews',
+  two_star_reviews: '2 Star Reviews',
+  three_star_reviews: '3 Star Reviews',
+  four_star_reviews: '4 Star Reviews',
+  five_star_reviews: '5 Star Reviews',
+  one_star_media_reviews: '1 Star Reviews w/ Media',
+  two_star_media_reviews: '2 Star Reviews w/ Media',
 }
 
 // Common column name variations for auto-detection
 const COLUMN_VARIATIONS: Record<keyof D7FieldMapping, string[]> = {
-  business_name: ['Business Name', 'Name', 'Company', 'Company Name', 'Business'],
+  business_name: ['BusinessName', 'Business Name', 'Name', 'Company', 'Company Name', 'Business'],
+  contact_name: ['PersonName', 'Person Name', 'Contact', 'Contact Name', 'Owner'],
   email: ['Email', 'Contact Email', 'Email Address', 'E-mail'],
-  phone: ['Phone', 'Telephone', 'Phone Number', 'Tel'],
-  website: ['Website', 'URL', 'Web', 'Site'],
-  address: ['Address', 'Street', 'Street Address'],
-  city: ['City', 'Town'],
+  website_url: ['WebsiteURL', 'Website URL', 'Website', 'URL', 'Web', 'Site'],
+  gmaps_url: ['Gmaps_URL', 'Google Maps URL', 'GMaps', 'Maps URL', 'Google Maps'],
+  city: ['City', 'Town', 'Location'],
   state: ['State', 'Province', 'Region'],
-  zip: ['Zip', 'Zip Code', 'Postal Code', 'Zipcode'],
-  total_reviews: ['Total Reviews', 'Reviews', 'Review Count'],
-  one_star_media_reviews: ['1-Star Media Reviews', '1 Star Media', '1-Star Photos', 'One Star Media'],
-  two_star_media_reviews: ['2-Star Media Reviews', '2 Star Media', '2-Star Photos', 'Two Star Media'],
+  google_rating: ['Rating', 'Google Rating', 'Stars', 'Star Rating'],
+  total_reviews: ['Reviews', 'Total Reviews', 'Review Count', 'Number of Reviews'],
+  one_star_reviews: ['1 Star Reviews', '1-Star Reviews', '1 Star', 'One Star Reviews'],
+  two_star_reviews: ['2 Star Reviews', '2-Star Reviews', '2 Star', 'Two Star Reviews'],
+  three_star_reviews: ['3 Star Reviews', '3-Star Reviews', '3 Star', 'Three Star Reviews'],
+  four_star_reviews: ['4 Star Reviews', '4-Star Reviews', '4 Star', 'Four Star Reviews'],
+  five_star_reviews: ['5 Star Reviews', '5-Star Reviews', '5 Star', 'Five Star Reviews'],
+  one_star_media_reviews: ['1 Star Reviews w/ Media', '1-Star Media Reviews', '1 Star Media', '1-Star Photos', 'One Star Media'],
+  two_star_media_reviews: ['2 Star Reviews w/ Media', '2-Star Media Reviews', '2 Star Media', '2-Star Photos', 'Two Star Media'],
 }
 
 export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
@@ -118,29 +128,28 @@ export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
           const businessRecords = batch
             .filter(row => row[mappings.business_name]?.trim()) // Skip rows without business name
             .map(row => {
-              const oneStarMedia = parseInt(row[mappings.one_star_media_reviews]) || 0
-              const twoStarMedia = parseInt(row[mappings.two_star_media_reviews]) || 0
-              const totalMediaReviews = oneStarMedia + twoStarMedia
-              const pricing = calculatePricing(totalMediaReviews)
-
               return {
                 business_name: row[mappings.business_name]?.trim() || '',
+                contact_name: row[mappings.contact_name]?.trim() || null,
                 email: row[mappings.email]?.trim() || null,
-                phone: row[mappings.phone]?.trim() || null,
-                website: row[mappings.website]?.trim() || null,
-                address: row[mappings.address]?.trim() || null,
+                website_url: row[mappings.website_url]?.trim() || null,
+                gmaps_url: row[mappings.gmaps_url]?.trim() || null,
                 city: row[mappings.city]?.trim() || null,
                 state: row[mappings.state]?.trim() || null,
-                zip: row[mappings.zip]?.trim() || null,
+                google_rating: parseFloat(row[mappings.google_rating]) || null,
                 total_reviews: parseInt(row[mappings.total_reviews]) || 0,
-                one_star_media_reviews: oneStarMedia,
-                two_star_media_reviews: twoStarMedia,
-                // total_media_reviews and total_project_value are GENERATED columns in PostgreSQL
-                // They are computed automatically from one_star_media_reviews, two_star_media_reviews, and price_per_review
-                pricing_tier: pricing.tier,
-                price_per_review: pricing.pricePerReview,
-                email_status: 'unverified' as const,
-                pipeline_stage: 'new_lead',
+                one_star_reviews: parseInt(row[mappings.one_star_reviews]) || 0,
+                two_star_reviews: parseInt(row[mappings.two_star_reviews]) || 0,
+                three_star_reviews: parseInt(row[mappings.three_star_reviews]) || 0,
+                four_star_reviews: parseInt(row[mappings.four_star_reviews]) || 0,
+                five_star_reviews: parseInt(row[mappings.five_star_reviews]) || 0,
+                one_star_media_reviews: parseInt(row[mappings.one_star_media_reviews]) || 0,
+                two_star_media_reviews: parseInt(row[mappings.two_star_media_reviews]) || 0,
+                // GENERATED columns (total_media_reviews, projected_rating, pricing_tier, price_per_review, total_project_value)
+                // are computed automatically by PostgreSQL
+                email_verification_status: 'unverified' as const,
+                email_outreach_status: 'not_sent' as const,
+                pipeline_stage: 'lead_scraped' as const,
               }
             })
 
@@ -175,7 +184,7 @@ export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
       <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-clay-200">
-          <h2 className="text-lg font-semibold text-clay-900">Import CSV</h2>
+          <h2 className="text-lg font-semibold text-clay-900">Import D7 Lead Finder CSV</h2>
           <button
             onClick={onClose}
             className="text-clay-400 hover:text-clay-600 transition-colors"
@@ -196,8 +205,11 @@ export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
                 </svg>
               </div>
               <h3 className="text-lg font-medium text-clay-900 mb-2">Upload D7 Lead Finder CSV</h3>
-              <p className="text-sm text-clay-500 mb-6">
-                Drop your CSV file here or click to browse
+              <p className="text-sm text-clay-500 mb-2">
+                Expected columns: BusinessName, PersonName, Email, WebsiteURL, Gmaps_URL, Rating, Reviews
+              </p>
+              <p className="text-xs text-clay-400 mb-6">
+                Plus star reviews: 1-5 Star Reviews, 1-2 Star Reviews w/ Media
               </p>
               <label className="inline-block">
                 <input

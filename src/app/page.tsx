@@ -5,7 +5,7 @@ import { BusinessGrid } from '@/components/BusinessGrid'
 import { ImportModal } from '@/components/ImportModal'
 import { FilterBar } from '@/components/FilterBar'
 import { supabase } from '@/lib/supabase'
-import { Business, Tag, FilterState } from '@/types'
+import { Business, Tag, FilterState, PIPELINE_STAGES } from '@/types'
 
 export default function BusinessesPage() {
   const [businesses, setBusinesses] = useState<Business[]>([])
@@ -17,7 +17,11 @@ export default function BusinessesPage() {
     search: '',
     tags: [],
     stages: [],
-    emailStatus: [],
+    emailVerificationStatuses: [],
+    emailOutreachStatuses: [],
+    pricingTiers: [],
+    cities: [],
+    campaigns: [],
   })
 
   useEffect(() => {
@@ -89,7 +93,11 @@ export default function BusinessesPage() {
       return false
     }
 
-    if (filters.emailStatus.length > 0 && !filters.emailStatus.includes(business.email_status)) {
+    if (filters.emailVerificationStatuses.length > 0 && !filters.emailVerificationStatuses.includes(business.email_verification_status)) {
+      return false
+    }
+
+    if (filters.emailOutreachStatuses.length > 0 && !filters.emailOutreachStatuses.includes(business.email_outreach_status)) {
       return false
     }
 
@@ -122,10 +130,11 @@ export default function BusinessesPage() {
                 defaultValue=""
               >
                 <option value="">Change Stage...</option>
-                <option value="new_lead">New Lead</option>
-                <option value="verified_email">Verified Email</option>
-                <option value="campaign_ready">Campaign Ready</option>
-                <option value="active_outreach">Active Outreach</option>
+                {PIPELINE_STAGES.map((stage) => (
+                  <option key={stage.id} value={stage.id}>
+                    {stage.name}
+                  </option>
+                ))}
               </select>
             </>
           )}

@@ -37,28 +37,33 @@ export default function MetricsPage() {
   const totalPipelineValue = businesses.reduce((sum, b) => sum + b.total_project_value, 0)
   const avgProjectValue = totalBusinesses > 0 ? Math.round(totalPipelineValue / totalBusinesses) : 0
 
-  // Stage counts
-  const newLeads = businesses.filter((b) => b.pipeline_stage === 'new_lead').length
-  const activeOutreach = businesses.filter((b) => b.pipeline_stage === 'active_outreach').length
-  const positiveReplies = businesses.filter((b) => b.pipeline_stage === 'positive_reply').length
-  const proposalsSent = businesses.filter((b) => b.pipeline_stage === 'proposal_sent').length
+  // Stage counts (using new pipeline stages)
+  const leadScraped = businesses.filter((b) => b.pipeline_stage === 'lead_scraped').length
+  const emailVerified = businesses.filter((b) => b.pipeline_stage === 'email_verified').length
+  const campaignReady = businesses.filter((b) => b.pipeline_stage === 'campaign_ready').length
+  const outreachSent = businesses.filter((b) => b.pipeline_stage === 'outreach_sent').length
+  const positiveReply = businesses.filter((b) => b.pipeline_stage === 'positive_reply').length
+  const proposalSent = businesses.filter((b) => b.pipeline_stage === 'proposal_sent').length
   const dealsClosed = businesses.filter((b) => b.pipeline_stage === 'deal_closed').length
-  const inDelivery = businesses.filter((b) => b.pipeline_stage === 'service_delivery').length
+  const inDelivery = businesses.filter((b) => b.pipeline_stage === 'in_service_delivery').length
 
   // Campaign stats
   const totalCampaigns = campaigns.length
-  const messagesGenerated = campaigns.reduce((sum, c) => sum + c.generated_count, 0)
+  const totalEmails = campaigns.reduce((sum, c) => sum + c.emails_sent, 0)
 
-  // Email status breakdown
-  const emailVerified = businesses.filter((b) => b.email_status === 'good').length
-  const emailRisky = businesses.filter((b) => b.email_status === 'risky').length
-  const emailBad = businesses.filter((b) => b.email_status === 'bad').length
-  const emailUnverified = businesses.filter((b) => b.email_status === 'unverified').length
+  // Email verification status breakdown (Brainzey)
+  const emailGood = businesses.filter((b) => b.email_verification_status === 'good').length
+  const emailRisky = businesses.filter((b) => b.email_verification_status === 'risky').length
+  const emailBad = businesses.filter((b) => b.email_verification_status === 'bad').length
+  const emailUnverified = businesses.filter((b) => b.email_verification_status === 'unverified').length
 
   // Pricing tier breakdown
   const tierStandard = businesses.filter((b) => b.pricing_tier === 'standard').length
   const tierVolume = businesses.filter((b) => b.pricing_tier === 'volume').length
   const tierEnterprise = businesses.filter((b) => b.pricing_tier === 'enterprise').length
+
+  // Total media reviews
+  const totalMediaReviews = businesses.reduce((sum, b) => sum + b.total_media_reviews, 0)
 
   const primaryMetrics: MetricCard[] = [
     {
@@ -80,8 +85,8 @@ export default function MetricsPage() {
         .toLocaleString()} value`,
     },
     {
-      label: 'Messages Generated',
-      value: messagesGenerated,
+      label: 'Total Media Reviews',
+      value: totalMediaReviews.toLocaleString(),
       subValue: `${totalCampaigns} campaigns`,
     },
   ]
@@ -123,10 +128,12 @@ export default function MetricsPage() {
           <h2 className="text-lg font-medium text-clay-900 mb-4">Pipeline Funnel</h2>
           <div className="space-y-3">
             {[
-              { label: 'New Leads', count: newLeads, color: 'bg-clay-400' },
-              { label: 'Active Outreach', count: activeOutreach, color: 'bg-yellow-400' },
-              { label: 'Positive Replies', count: positiveReplies, color: 'bg-green-400' },
-              { label: 'Proposals Sent', count: proposalsSent, color: 'bg-blue-400' },
+              { label: 'Lead Scraped', count: leadScraped, color: 'bg-clay-400' },
+              { label: 'Email Verified', count: emailVerified, color: 'bg-gray-500' },
+              { label: 'Campaign Ready', count: campaignReady, color: 'bg-blue-400' },
+              { label: 'Outreach Sent', count: outreachSent, color: 'bg-blue-500' },
+              { label: 'Positive Reply', count: positiveReply, color: 'bg-green-400' },
+              { label: 'Proposal Sent', count: proposalSent, color: 'bg-yellow-400' },
               { label: 'Deals Closed', count: dealsClosed, color: 'bg-green-600' },
               { label: 'In Delivery', count: inDelivery, color: 'bg-purple-400' },
             ].map((item) => (
@@ -149,11 +156,11 @@ export default function MetricsPage() {
         </div>
 
         <div className="clay-card">
-          <h2 className="text-lg font-medium text-clay-900 mb-4">Email Quality</h2>
+          <h2 className="text-lg font-medium text-clay-900 mb-4">Email Quality (Brainzey)</h2>
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-green-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-semibold text-green-700">{emailVerified}</div>
-              <div className="text-sm text-green-600">Verified</div>
+              <div className="text-2xl font-semibold text-green-700">{emailGood}</div>
+              <div className="text-sm text-green-600">Good</div>
             </div>
             <div className="bg-yellow-50 rounded-lg p-4 text-center">
               <div className="text-2xl font-semibold text-yellow-700">{emailRisky}</div>
@@ -183,12 +190,12 @@ export default function MetricsPage() {
           <div className="text-center">
             <div className="text-4xl font-semibold text-blue-600">{tierVolume}</div>
             <div className="text-sm text-clay-500 mt-1">Volume</div>
-            <div className="text-xs text-clay-400">$110/review (25-99)</div>
+            <div className="text-xs text-clay-400">$110/review (25-49)</div>
           </div>
           <div className="text-center">
             <div className="text-4xl font-semibold text-purple-600">{tierEnterprise}</div>
             <div className="text-sm text-clay-500 mt-1">Enterprise</div>
-            <div className="text-xs text-clay-400">$90/review (100+)</div>
+            <div className="text-xs text-clay-400">$90/review (50+)</div>
           </div>
         </div>
       </div>

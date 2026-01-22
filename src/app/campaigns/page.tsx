@@ -30,6 +30,9 @@ export default function CampaignsPage() {
       generating: 'bg-yellow-100 text-yellow-700',
       ready: 'bg-green-100 text-green-700',
       exported: 'bg-blue-100 text-blue-700',
+      active: 'bg-green-100 text-green-700',
+      paused: 'bg-yellow-100 text-yellow-700',
+      completed: 'bg-clay-100 text-clay-700',
     }
     return statusStyles[status] || statusStyles.draft
   }

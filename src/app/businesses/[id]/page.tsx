@@ -55,8 +55,8 @@ export default function BusinessDetailPage() {
     // Log history
     await supabase.from('stage_history').insert({
       business_id: businessId,
-      from_stage: oldStage,
-      to_stage: newStage,
+      old_stage: oldStage,
+      new_stage: newStage,
     })
 
     await loadData()
@@ -162,14 +162,14 @@ export default function BusinessDetailPage() {
               <div>
                 <label className="text-xs text-clay-500 uppercase tracking-wide">Website</label>
                 <p className="text-sm text-clay-900 mt-0.5">
-                  {business.website ? (
+                  {business.website_url ? (
                     <a
-                      href={business.website}
+                      href={business.website_url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-accent-blue hover:underline"
                     >
-                      {business.website}
+                      {business.website_url}
                     </a>
                   ) : (
                     <span className="text-clay-400">Not available</span>
@@ -177,29 +177,46 @@ export default function BusinessDetailPage() {
                 </p>
               </div>
               <div>
-                <label className="text-xs text-clay-500 uppercase tracking-wide">Email Status</label>
+                <label className="text-xs text-clay-500 uppercase tracking-wide">Email Verification</label>
                 <p className="text-sm mt-0.5">
                   <span
                     className={`font-medium capitalize ${
-                      business.email_status === 'good'
+                      business.email_verification_status === 'good'
                         ? 'text-green-600'
-                        : business.email_status === 'risky'
+                        : business.email_verification_status === 'risky'
                         ? 'text-yellow-600'
-                        : business.email_status === 'bad'
+                        : business.email_verification_status === 'bad'
                         ? 'text-red-600'
                         : 'text-clay-400'
                     }`}
                   >
-                    {business.email_status}
+                    {business.email_verification_status}
                   </span>
                 </p>
               </div>
-              <div className="col-span-2">
-                <label className="text-xs text-clay-500 uppercase tracking-wide">Address</label>
+              <div>
+                <label className="text-xs text-clay-500 uppercase tracking-wide">Location</label>
                 <p className="text-sm text-clay-900 mt-0.5">
-                  {[business.address, business.city, business.state, business.zip]
+                  {[business.city, business.state]
                     .filter(Boolean)
                     .join(', ') || <span className="text-clay-400">Not available</span>}
+                </p>
+              </div>
+              <div>
+                <label className="text-xs text-clay-500 uppercase tracking-wide">Google Maps</label>
+                <p className="text-sm text-clay-900 mt-0.5">
+                  {business.gmaps_url ? (
+                    <a
+                      href={business.gmaps_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-accent-blue hover:underline"
+                    >
+                      View on Maps
+                    </a>
+                  ) : (
+                    <span className="text-clay-400">Not available</span>
+                  )}
                 </p>
               </div>
             </div>
@@ -208,30 +225,50 @@ export default function BusinessDetailPage() {
           {/* Review Breakdown */}
           <div className="clay-card">
             <h2 className="text-lg font-medium text-clay-900 mb-4">Review Breakdown</h2>
-            <div className="grid grid-cols-4 gap-4">
-              <div className="text-center bg-clay-50 rounded-lg p-4">
-                <div className="text-2xl font-semibold text-clay-900">
+            <div className="grid grid-cols-5 gap-3 mb-4">
+              <div className="text-center bg-clay-50 rounded-lg p-3">
+                <div className="text-xl font-semibold text-clay-900">
+                  {business.google_rating?.toFixed(1) || '-'}
+                </div>
+                <div className="text-xs text-clay-500 mt-1">Current Rating</div>
+              </div>
+              <div className="text-center bg-green-50 rounded-lg p-3">
+                <div className="text-xl font-semibold text-green-600">
+                  {business.projected_rating?.toFixed(1) || '-'}
+                </div>
+                <div className="text-xs text-clay-500 mt-1">Projected</div>
+              </div>
+              <div className="text-center bg-clay-50 rounded-lg p-3">
+                <div className="text-xl font-semibold text-clay-900">
                   {business.total_reviews}
                 </div>
                 <div className="text-xs text-clay-500 mt-1">Total Reviews</div>
               </div>
-              <div className="text-center bg-red-50 rounded-lg p-4">
-                <div className="text-2xl font-semibold text-red-600">
-                  {business.one_star_media_reviews}
-                </div>
-                <div className="text-xs text-clay-500 mt-1">1-Star Media</div>
-              </div>
-              <div className="text-center bg-yellow-50 rounded-lg p-4">
-                <div className="text-2xl font-semibold text-yellow-600">
-                  {business.two_star_media_reviews}
-                </div>
-                <div className="text-xs text-clay-500 mt-1">2-Star Media</div>
-              </div>
-              <div className="text-center bg-blue-50 rounded-lg p-4">
-                <div className="text-2xl font-semibold text-blue-600">
+              <div className="text-center bg-red-50 rounded-lg p-3">
+                <div className="text-xl font-semibold text-red-600">
                   {business.total_media_reviews}
                 </div>
-                <div className="text-xs text-clay-500 mt-1">Total Media</div>
+                <div className="text-xs text-clay-500 mt-1">Media Reviews</div>
+              </div>
+              <div className="text-center bg-blue-50 rounded-lg p-3">
+                <div className="text-xl font-semibold text-blue-600">
+                  +{((business.projected_rating || 0) - (business.google_rating || 0)).toFixed(1)}
+                </div>
+                <div className="text-xs text-clay-500 mt-1">Rating Boost</div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center bg-red-50 rounded-lg p-3">
+                <div className="text-lg font-semibold text-red-600">
+                  {business.one_star_media_reviews}
+                </div>
+                <div className="text-xs text-clay-500 mt-1">1-Star w/ Media</div>
+              </div>
+              <div className="text-center bg-yellow-50 rounded-lg p-3">
+                <div className="text-lg font-semibold text-yellow-600">
+                  {business.two_star_media_reviews}
+                </div>
+                <div className="text-xs text-clay-500 mt-1">2-Star w/ Media</div>
               </div>
             </div>
           </div>
@@ -251,7 +288,7 @@ export default function BusinessDetailPage() {
                       : 'text-clay-900'
                   }`}
                 >
-                  {business.pricing_tier}
+                  {business.pricing_tier || 'N/A'}
                 </div>
               </div>
               <div className="text-center">
@@ -311,9 +348,9 @@ export default function BusinessDetailPage() {
             ) : (
               <div className="space-y-3">
                 {stageHistory.map((entry) => {
-                  const toStage = PIPELINE_STAGES.find((s) => s.id === entry.to_stage)
-                  const fromStage = entry.from_stage
-                    ? PIPELINE_STAGES.find((s) => s.id === entry.from_stage)
+                  const toStage = PIPELINE_STAGES.find((s) => s.id === entry.new_stage)
+                  const fromStage = entry.old_stage
+                    ? PIPELINE_STAGES.find((s) => s.id === entry.old_stage)
                     : null
 
                   return (
@@ -355,14 +392,24 @@ export default function BusinessDetailPage() {
                   Send Email
                 </a>
               )}
-              {business.website && (
+              {business.website_url && (
                 <a
-                  href={business.website}
+                  href={business.website_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="clay-btn-secondary w-full justify-center"
                 >
                   Visit Website
+                </a>
+              )}
+              {business.gmaps_url && (
+                <a
+                  href={business.gmaps_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="clay-btn-secondary w-full justify-center"
+                >
+                  View on Google Maps
                 </a>
               )}
             </div>

@@ -1,0 +1,138 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Clay.com inspired global styles */
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-clay-50 text-clay-900;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-clay-100;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-clay-300 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-clay-400;
+  }
+}
+
+@layer components {
+  /* Clay-style card */
+  .clay-card {
+    @apply bg-white rounded-2xl border border-clay-200 shadow-clay p-6;
+  }
+
+  /* Clay-style button */
+  .clay-btn {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-150;
+  }
+
+  .clay-btn-primary {
+    @apply clay-btn bg-clay-900 text-white hover:bg-clay-800 active:bg-clay-950;
+  }
+
+  .clay-btn-secondary {
+    @apply clay-btn bg-white text-clay-700 border border-clay-300 hover:bg-clay-50 active:bg-clay-100;
+  }
+
+  .clay-btn-ghost {
+    @apply clay-btn text-clay-600 hover:bg-clay-100 active:bg-clay-200;
+  }
+
+  /* Clay-style input */
+  .clay-input {
+    @apply w-full px-3 py-2 text-sm border border-clay-300 rounded-lg bg-white placeholder-clay-400
+           focus:outline-none focus:ring-2 focus:ring-accent-blue focus:border-transparent transition-all;
+  }
+
+  /* Clay-style badge */
+  .clay-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .clay-badge-gray {
+    @apply clay-badge bg-clay-100 text-clay-700;
+  }
+
+  .clay-badge-blue {
+    @apply clay-badge bg-blue-100 text-blue-700;
+  }
+
+  .clay-badge-green {
+    @apply clay-badge bg-green-100 text-green-700;
+  }
+
+  .clay-badge-yellow {
+    @apply clay-badge bg-yellow-100 text-yellow-700;
+  }
+
+  .clay-badge-red {
+    @apply clay-badge bg-red-100 text-red-700;
+  }
+
+  /* Table styles */
+  .clay-table {
+    @apply w-full border-collapse;
+  }
+
+  .clay-table th {
+    @apply px-4 py-3 text-left text-xs font-medium text-clay-500 uppercase tracking-wider bg-clay-50 border-b border-clay-200;
+  }
+
+  .clay-table td {
+    @apply px-4 py-4 text-sm text-clay-700 border-b border-clay-100;
+  }
+
+  .clay-table tr:hover td {
+    @apply bg-clay-50;
+  }
+}
+
+/* AG Grid Clay Theme Overrides */
+.ag-theme-alpine {
+  --ag-background-color: #ffffff;
+  --ag-header-background-color: #fafafa;
+  --ag-odd-row-background-color: #ffffff;
+  --ag-row-hover-color: #f5f5f5;
+  --ag-border-color: #e5e5e5;
+  --ag-header-foreground-color: #525252;
+  --ag-foreground-color: #404040;
+  --ag-secondary-foreground-color: #737373;
+  --ag-row-border-color: #f5f5f5;
+  --ag-cell-horizontal-padding: 16px;
+  --ag-header-height: 48px;
+  --ag-row-height: 52px;
+  --ag-font-family: 'Inter', system-ui, sans-serif;
+  --ag-font-size: 14px;
+}
+
+.ag-theme-alpine .ag-header-cell {
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ag-theme-alpine .ag-row-selected {
+  background-color: #eff6ff !important;
+}
+
+.ag-theme-alpine .ag-checkbox-input-wrapper {
+  border-radius: 4px;
+}

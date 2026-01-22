@@ -1,8 +1,9 @@
 'use client';
 
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { cn } from '@/lib/utils';
+import { CustomFieldInput } from './CustomFieldInput';
 
 interface SelectOption {
   value: string;
@@ -16,10 +17,43 @@ interface SelectProps {
   options: SelectOption[];
   placeholder?: string;
   error?: string;
+  allowCustomFields?: boolean;
+  onAddCustomField?: (fieldName: string) => void;
 }
 
-export function Select({ label, value, onChange, options, placeholder, error }: SelectProps) {
+const ADD_CUSTOM_VALUE = '__add_custom__';
+
+export function Select({
+  label,
+  value,
+  onChange,
+  options,
+  placeholder,
+  error,
+  allowCustomFields = false,
+  onAddCustomField
+}: SelectProps) {
+  const [showCustomInput, setShowCustomInput] = useState(false);
   const selectedOption = options.find(opt => opt.value === value);
+
+  const handleChange = (newValue: string) => {
+    if (newValue === ADD_CUSTOM_VALUE && allowCustomFields) {
+      setShowCustomInput(true);
+    } else {
+      onChange(newValue);
+    }
+  };
+
+  const handleSaveCustomField = (fieldName: string) => {
+    if (onAddCustomField) {
+      onAddCustomField(fieldName);
+    }
+    setShowCustomInput(false);
+  };
+
+  const handleCancelCustomField = () => {
+    setShowCustomInput(false);
+  };
 
   return (
     <div className="w-full">
@@ -28,13 +62,15 @@ export function Select({ label, value, onChange, options, placeholder, error }: 
           {label}
         </label>
       )}
-      <Listbox value={value} onChange={onChange}>
+      <Listbox value={value} onChange={handleChange} disabled={showCustomInput}>
         <div className="relative">
           <Listbox.Button
             className={cn(
               'relative w-full px-4 py-2 rounded-xl border border-black/10 bg-white text-left',
               'focus:outline-none focus:ring-2 focus:ring-blue-500',
-              error && 'border-red-500'
+              'transition-all',
+              error && 'border-red-500',
+              showCustomInput && 'opacity-60'
             )}
           >
             <span className={cn(
@@ -73,10 +109,37 @@ export function Select({ label, value, onChange, options, placeholder, error }: 
                   )}
                 </Listbox.Option>
               ))}
+
+              {allowCustomFields && onAddCustomField && (
+                <>
+                  <div className="border-t border-clay-200 my-1" />
+                  <Listbox.Option
+                    value={ADD_CUSTOM_VALUE}
+                    className={({ active }) => cn(
+                      'relative cursor-pointer select-none py-2 px-4',
+                      'flex items-center gap-2',
+                      active ? 'bg-blue-50 text-blue-600' : 'text-accent-blue'
+                    )}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    <span className="font-medium">Add custom field...</span>
+                  </Listbox.Option>
+                </>
+              )}
             </Listbox.Options>
           </Transition>
         </div>
       </Listbox>
+
+      {showCustomInput && (
+        <CustomFieldInput
+          onSave={handleSaveCustomField}
+          onCancel={handleCancelCustomField}
+        />
+      )}
+
       {error && (
         <p className="mt-1.5 text-sm text-red-600">{error}</p>
       )}

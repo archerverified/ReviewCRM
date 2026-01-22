@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { BusinessGrid } from '@/components/BusinessGrid'
 import { ImportModal } from '@/components/ImportModal'
 import { FilterBar } from '@/components/FilterBar'
+import { Button } from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase'
 import { Business, Tag, FilterState, PIPELINE_STAGES } from '@/types'
 
@@ -138,12 +139,9 @@ export default function BusinessesPage() {
               </select>
             </>
           )}
-          <button
-            onClick={() => setShowImportModal(true)}
-            className="clay-btn-primary"
-          >
+          <Button onClick={() => setShowImportModal(true)}>
             Import CSV
-          </button>
+          </Button>
         </div>
       </div>
 

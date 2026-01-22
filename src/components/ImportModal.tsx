@@ -60,6 +60,7 @@ export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
   const [csvData, setCsvData] = useState<any[]>([])
   const [headers, setHeaders] = useState<string[]>([])
   const [mappings, setMappings] = useState<D7FieldMapping>(DEFAULT_MAPPINGS)
+  const [customFields, setCustomFields] = useState<string[]>([])
   const [progress, setProgress] = useState(0)
   const [importedCount, setImportedCount] = useState(0)
   const [errors, setErrors] = useState<string[]>([])
@@ -106,6 +107,17 @@ export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
 
   const handleMappingChange = useCallback((field: keyof D7FieldMapping, value: string) => {
     setMappings(prev => ({ ...prev, [field]: value }))
+  }, [])
+
+  const handleAddCustomField = useCallback((field: keyof D7FieldMapping, fieldName: string) => {
+    // Add to custom fields list
+    setCustomFields(prev => [...prev, fieldName])
+
+    // Update mapping to use the custom field
+    setMappings(prev => ({ ...prev, [field]: fieldName }))
+
+    // Show success toast
+    toast.success(`Custom field '${fieldName}' added`)
   }, [])
 
   const handleImport = useCallback(async () => {
@@ -194,12 +206,15 @@ export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
     setFile(null)
     setCsvData([])
     setHeaders([])
+    setCustomFields([])
     setStep('upload')
     if (fileInputRef.current) fileInputRef.current.value = ''
     onClose()
   }, [onClose])
 
-  const columnOptions = headers.map(h => ({ value: h, label: h }))
+  // Combine CSV headers with custom fields for dropdown options
+  const allColumns = [...headers, ...customFields]
+  const columnOptions = allColumns.map(h => ({ value: h, label: h }))
 
   return (
     <Modal
@@ -244,18 +259,19 @@ export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
             <p className="text-xs text-clay-400 mb-6">
               Plus star reviews: 1-5 Star Reviews, 1-2 Star Reviews w/ Media
             </p>
-            <label className="inline-block">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".csv"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-              <Button variant="primary">
-                Choose File
-              </Button>
-            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <Button
+              variant="primary"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              Choose File
+            </Button>
           </div>
         )}
 
@@ -299,6 +315,8 @@ export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
                   value={mappings[field]}
                   onChange={(v) => handleMappingChange(field, v)}
                   options={[{ value: '', label: '-- Select Column --' }, ...columnOptions]}
+                  allowCustomFields={true}
+                  onAddCustomField={(fieldName) => handleAddCustomField(field, fieldName)}
                 />
               ))}
             </div>
@@ -322,15 +340,43 @@ export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
 
         {step === 'complete' && (
           <div className="text-center py-8">
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-clay-900 mb-2">Import Complete</h3>
-            <p className="text-sm text-clay-500 mb-4">
-              Successfully imported {importedCount} businesses
-            </p>
+            {importedCount > 0 && errors.length === 0 ? (
+              <>
+                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-clay-900 mb-2">Import Complete</h3>
+                <p className="text-sm text-clay-500 mb-4">
+                  Successfully imported {importedCount} businesses
+                </p>
+              </>
+            ) : importedCount > 0 && errors.length > 0 ? (
+              <>
+                <div className="mx-auto w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+                  <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-clay-900 mb-2">Import Partially Complete</h3>
+                <p className="text-sm text-clay-500 mb-4">
+                  Imported {importedCount} businesses with some errors
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-clay-900 mb-2">Import Failed</h3>
+                <p className="text-sm text-clay-500 mb-4">
+                  No businesses were imported
+                </p>
+              </>
+            )}
             {errors.length > 0 && (
               <div className="text-left bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
                 <p className="text-sm font-medium text-red-800 mb-2">Errors:</p>

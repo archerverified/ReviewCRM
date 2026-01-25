@@ -49,7 +49,7 @@ export function CustomFieldInput({ onSave, onCancel, placeholder = 'e.g., Atlant
 
   const handleSave = () => {
     if (validation.valid) {
-      onSave(value);
+      onSave(value.trim());
       setValue('');
     }
   };

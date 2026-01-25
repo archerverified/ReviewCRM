@@ -209,6 +209,45 @@ export const businessQueries = {
     if (error) throw error;
   },
 
+  async updateOutreachMessage(id: string, message: string): Promise<void> {
+    const { error } = await supabase
+      .from('businesses')
+      .update({ outreach_message: message, updated_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (error) throw error;
+  },
+
+  async bulkUpdateOutreachMessages(updates: Array<{ id: string; message: string }>): Promise<void> {
+    // Process in parallel with Promise.allSettled to handle individual failures
+    const results = await Promise.allSettled(
+      updates.map(async ({ id, message }) => {
+        const { error } = await supabase
+          .from('businesses')
+          .update({ outreach_message: message, updated_at: new Date().toISOString() })
+          .eq('id', id);
+
+        if (error) throw error;
+        return id;
+      })
+    );
+
+    const failed = results.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+    if (failed.length > 0) {
+      throw new Error(`Failed to update ${failed.length} records`);
+    }
+  },
+
+  async getByIds(ids: string[]): Promise<Business[]> {
+    const { data, error } = await supabase
+      .from('businesses')
+      .select('*')
+      .in('id', ids);
+
+    if (error) throw error;
+    return data as Business[];
+  },
+
   async delete(id: string): Promise<void> {
     const { error } = await supabase
       .from('businesses')
@@ -223,6 +262,44 @@ export const businessQueries = {
       .from('businesses')
       .delete()
       .in('id', ids);
+
+    if (error) throw error;
+  },
+
+  async getByTagIds(tagIds: string[]): Promise<Business[]> {
+    if (tagIds.length === 0) return [];
+
+    // Get business IDs from junction table
+    const { data: associations, error: assocError } = await supabase
+      .from('business_tags')
+      .select('business_id')
+      .in('tag_id', tagIds);
+
+    if (assocError) throw assocError;
+
+    // Get unique business IDs
+    const businessIds = Array.from(new Set(associations?.map((a) => a.business_id) || []));
+
+    if (businessIds.length === 0) return [];
+
+    // Fetch the businesses
+    const { data, error } = await supabase
+      .from('businesses')
+      .select('*')
+      .in('id', businessIds)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data as Business[];
+  },
+
+  async bulkAssignToCampaign(businessIds: string[], campaignId: string): Promise<void> {
+    if (businessIds.length === 0) return;
+
+    const { error } = await supabase
+      .from('businesses')
+      .update({ campaign_id: campaignId, updated_at: new Date().toISOString() })
+      .in('id', businessIds);
 
     if (error) throw error;
   },
@@ -284,6 +361,11 @@ export const campaignQueries = {
   },
 };
 
+// Tag with business count for campaign creation
+export interface TagWithCount extends Tag {
+  business_count: number;
+}
+
 // Tag query helpers
 export const tagQueries = {
   async getAll(): Promise<Tag[]> {
@@ -296,6 +378,34 @@ export const tagQueries = {
     return data as Tag[];
   },
 
+  async getTagsWithBusinessCount(): Promise<TagWithCount[]> {
+    // Get all tags with their business counts via junction table
+    const { data: tags, error: tagsError } = await supabase
+      .from('tags')
+      .select('*')
+      .order('name');
+
+    if (tagsError) throw tagsError;
+
+    // Get counts for each tag
+    const { data: counts, error: countsError } = await supabase
+      .from('business_tags')
+      .select('tag_id');
+
+    if (countsError) throw countsError;
+
+    // Count businesses per tag
+    const countMap = new Map<string, number>();
+    counts?.forEach((bt) => {
+      countMap.set(bt.tag_id, (countMap.get(bt.tag_id) || 0) + 1);
+    });
+
+    return (tags || []).map((tag) => ({
+      ...tag,
+      business_count: countMap.get(tag.id) || 0,
+    })) as TagWithCount[];
+  },
+
   async create(tag: Partial<Tag>): Promise<Tag> {
     const { data, error } = await supabase
       .from('tags')
@@ -305,6 +415,48 @@ export const tagQueries = {
 
     if (error) throw error;
     return data as Tag;
+  },
+
+  async createAndAssign(name: string, color: string, businessIds: string[]): Promise<Tag> {
+    // Create the tag
+    const { data: tag, error: tagError } = await supabase
+      .from('tags')
+      .insert({ name, color })
+      .select()
+      .single();
+
+    if (tagError) throw tagError;
+
+    // Assign tag to all businesses
+    if (businessIds.length > 0) {
+      const associations = businessIds.map((businessId) => ({
+        business_id: businessId,
+        tag_id: tag.id,
+      }));
+
+      const { error: assocError } = await supabase
+        .from('business_tags')
+        .insert(associations);
+
+      if (assocError) throw assocError;
+    }
+
+    return tag as Tag;
+  },
+
+  async assignToBusinesses(tagId: string, businessIds: string[]): Promise<void> {
+    if (businessIds.length === 0) return;
+
+    const associations = businessIds.map((businessId) => ({
+      business_id: businessId,
+      tag_id: tagId,
+    }));
+
+    const { error } = await supabase
+      .from('business_tags')
+      .insert(associations);
+
+    if (error) throw error;
   },
 
   async update(id: string, updates: Partial<Tag>): Promise<Tag> {

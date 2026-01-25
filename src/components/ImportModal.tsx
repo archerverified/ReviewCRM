@@ -1,13 +1,25 @@
 'use client'
 
-import { useState, useRef, ChangeEvent, useCallback } from 'react'
+import { useState, useRef, useEffect, ChangeEvent, useCallback } from 'react'
 import Papa from 'papaparse'
-import { supabase } from '@/lib/supabase'
-import { D7FieldMapping } from '@/types'
+import { supabase, tagQueries } from '@/lib/supabase'
+import { D7FieldMapping, Tag } from '@/types'
 import { Modal } from './ui/Modal'
 import { Button } from './ui/Button'
 import { Select } from './ui/Select'
 import { toast } from 'sonner'
+
+// Predefined tag colors
+const TAG_COLORS = [
+  '#3b82f6', // blue
+  '#10b981', // green
+  '#f59e0b', // amber
+  '#ef4444', // red
+  '#8b5cf6', // purple
+  '#ec4899', // pink
+  '#06b6d4', // cyan
+  '#84cc16', // lime
+];
 
 interface ImportModalProps {
   onClose: () => void
@@ -55,7 +67,7 @@ const COLUMN_VARIATIONS: Record<keyof D7FieldMapping, string[]> = {
 }
 
 export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
-  const [step, setStep] = useState<'upload' | 'mapping' | 'importing' | 'complete'>('upload')
+  const [step, setStep] = useState<'upload' | 'mapping' | 'tagging' | 'importing' | 'complete'>('upload')
   const [file, setFile] = useState<File | null>(null)
   const [csvData, setCsvData] = useState<any[]>([])
   const [headers, setHeaders] = useState<string[]>([])
@@ -65,6 +77,27 @@ export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
   const [importedCount, setImportedCount] = useState(0)
   const [errors, setErrors] = useState<string[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Tagging state
+  const [existingTags, setExistingTags] = useState<Tag[]>([])
+  const [selectedTagId, setSelectedTagId] = useState<string>('')
+  const [isCreatingNewTag, setIsCreatingNewTag] = useState(false)
+  const [newTagName, setNewTagName] = useState('')
+  const [newTagColor, setNewTagColor] = useState(TAG_COLORS[0])
+
+  // Load existing tags when component mounts
+  useEffect(() => {
+    loadExistingTags()
+  }, [])
+
+  async function loadExistingTags() {
+    try {
+      const tags = await tagQueries.getAll()
+      setExistingTags(tags)
+    } catch (error) {
+      console.error('Failed to load tags:', error)
+    }
+  }
 
   const handleFileChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -136,6 +169,7 @@ export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
         const totalRows = data.length
         let imported = 0
         const importErrors: string[] = []
+        const importedBusinessIds: string[] = []
 
         // Process in batches of 100
         const batchSize = 100
@@ -145,44 +179,123 @@ export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
           const businessRecords = batch
             .filter(row => row[mappings.business_name]?.trim()) // Skip rows without business name
             .map(row => {
-              return {
+              // Build record dynamically, only including fields that have mappings and values
+              const record: any = {
+                // Required field - always included
                 business_name: row[mappings.business_name]?.trim() || '',
-                contact_name: row[mappings.contact_name]?.trim() || null,
-                email: row[mappings.email]?.trim() || null,
-                website_url: row[mappings.website_url]?.trim() || null,
-                gmaps_url: row[mappings.gmaps_url]?.trim() || null,
-                city: row[mappings.city]?.trim() || null,
-                state: row[mappings.state]?.trim() || null,
-                google_rating: parseFloat(row[mappings.google_rating]) || null,
-                total_reviews: parseInt(row[mappings.total_reviews]) || 0,
-                one_star_reviews: parseInt(row[mappings.one_star_reviews]) || 0,
-                two_star_reviews: parseInt(row[mappings.two_star_reviews]) || 0,
-                three_star_reviews: parseInt(row[mappings.three_star_reviews]) || 0,
-                four_star_reviews: parseInt(row[mappings.four_star_reviews]) || 0,
-                five_star_reviews: parseInt(row[mappings.five_star_reviews]) || 0,
-                one_star_media_reviews: parseInt(row[mappings.one_star_media_reviews]) || 0,
-                two_star_media_reviews: parseInt(row[mappings.two_star_media_reviews]) || 0,
-                // GENERATED columns (total_media_reviews, projected_rating, pricing_tier, price_per_review, total_project_value)
-                // are computed automatically by PostgreSQL
+                // Required status fields
                 email_verification_status: 'unverified' as const,
                 email_outreach_status: 'not_sent' as const,
                 pipeline_stage: 'lead_scraped' as const,
               }
+
+              // Optional string fields - only include if mapped and has value
+              if (mappings.contact_name && row[mappings.contact_name]?.trim()) {
+                record.contact_name = row[mappings.contact_name].trim()
+              }
+              if (mappings.email && row[mappings.email]?.trim()) {
+                record.email = row[mappings.email].trim()
+              }
+              if (mappings.website_url && row[mappings.website_url]?.trim()) {
+                record.website_url = row[mappings.website_url].trim()
+              }
+              if (mappings.gmaps_url && row[mappings.gmaps_url]?.trim()) {
+                record.gmaps_url = row[mappings.gmaps_url].trim()
+              }
+              if (mappings.city && row[mappings.city]?.trim()) {
+                record.city = row[mappings.city].trim()
+              }
+              if (mappings.state && row[mappings.state]?.trim()) {
+                record.state = row[mappings.state].trim()
+              }
+
+              // Optional numeric fields - only include if mapped and has valid value
+              if (mappings.google_rating && row[mappings.google_rating]) {
+                const rating = parseFloat(row[mappings.google_rating])
+                if (!isNaN(rating)) record.google_rating = rating
+              }
+              if (mappings.total_reviews && row[mappings.total_reviews]) {
+                const reviews = parseInt(row[mappings.total_reviews])
+                if (!isNaN(reviews)) record.total_reviews = reviews
+              }
+              if (mappings.one_star_reviews && row[mappings.one_star_reviews]) {
+                const reviews = parseInt(row[mappings.one_star_reviews])
+                if (!isNaN(reviews)) record.one_star_reviews = reviews
+              }
+              if (mappings.two_star_reviews && row[mappings.two_star_reviews]) {
+                const reviews = parseInt(row[mappings.two_star_reviews])
+                if (!isNaN(reviews)) record.two_star_reviews = reviews
+              }
+              if (mappings.three_star_reviews && row[mappings.three_star_reviews]) {
+                const reviews = parseInt(row[mappings.three_star_reviews])
+                if (!isNaN(reviews)) record.three_star_reviews = reviews
+              }
+              if (mappings.four_star_reviews && row[mappings.four_star_reviews]) {
+                const reviews = parseInt(row[mappings.four_star_reviews])
+                if (!isNaN(reviews)) record.four_star_reviews = reviews
+              }
+              if (mappings.five_star_reviews && row[mappings.five_star_reviews]) {
+                const reviews = parseInt(row[mappings.five_star_reviews])
+                if (!isNaN(reviews)) record.five_star_reviews = reviews
+              }
+              if (mappings.one_star_media_reviews && row[mappings.one_star_media_reviews]) {
+                const reviews = parseInt(row[mappings.one_star_media_reviews])
+                if (!isNaN(reviews)) record.one_star_media_reviews = reviews
+              }
+              if (mappings.two_star_media_reviews && row[mappings.two_star_media_reviews]) {
+                const reviews = parseInt(row[mappings.two_star_media_reviews])
+                if (!isNaN(reviews)) record.two_star_media_reviews = reviews
+              }
+
+              // GENERATED columns (total_media_reviews, projected_rating, pricing_tier, price_per_review, total_project_value)
+              // are computed automatically by PostgreSQL
+
+              return record
             })
 
           if (businessRecords.length > 0) {
-            const { error } = await supabase
+            const { data: insertedData, error } = await supabase
               .from('businesses')
               .insert(businessRecords)
+              .select('id')
 
             if (error) {
               importErrors.push(`Batch ${Math.floor(i / batchSize) + 1}: ${error.message}`)
             } else {
               imported += businessRecords.length
+              // Collect imported business IDs for tag assignment
+              if (insertedData) {
+                importedBusinessIds.push(...insertedData.map((b: { id: string }) => b.id))
+              }
             }
           }
 
           setProgress(Math.round(((i + batchSize) / totalRows) * 100))
+        }
+
+        // Assign tag to imported businesses
+        if (importedBusinessIds.length > 0) {
+          try {
+            let tagId = selectedTagId
+
+            // Create new tag if needed
+            if (isCreatingNewTag && newTagName.trim()) {
+              const newTag = await tagQueries.create({
+                name: newTagName.trim(),
+                color: newTagColor,
+              })
+              tagId = newTag.id
+              toast.success(`Created tag "${newTagName}"`)
+            }
+
+            // Assign tag to all imported businesses
+            if (tagId) {
+              await tagQueries.assignToBusinesses(tagId, importedBusinessIds)
+            }
+          } catch (tagError) {
+            const errorMessage = tagError instanceof Error ? tagError.message : 'Unknown error'
+            importErrors.push(`Tag assignment: ${errorMessage}`)
+          }
         }
 
         setImportedCount(imported)
@@ -200,7 +313,7 @@ export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
         setStep('complete')
       },
     })
-  }, [file, mappings])
+  }, [file, mappings, selectedTagId, isCreatingNewTag, newTagName, newTagColor])
 
   const resetModal = useCallback(() => {
     setFile(null)
@@ -208,6 +321,11 @@ export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
     setHeaders([])
     setCustomFields([])
     setStep('upload')
+    // Reset tagging state
+    setSelectedTagId('')
+    setIsCreatingNewTag(false)
+    setNewTagName('')
+    setNewTagColor(TAG_COLORS[0])
     if (fileInputRef.current) fileInputRef.current.value = ''
     onClose()
   }, [onClose])
@@ -229,8 +347,20 @@ export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
               Cancel
             </Button>
             <Button
-              onClick={handleImport}
+              onClick={() => setStep('tagging')}
               disabled={!file}
+            >
+              Next: Assign Tag
+            </Button>
+          </>
+        ) : step === 'tagging' ? (
+          <>
+            <Button variant="secondary" onClick={() => setStep('mapping')}>
+              Back
+            </Button>
+            <Button
+              onClick={handleImport}
+              disabled={!file || (isCreatingNewTag && !newTagName.trim())}
             >
               Import {csvData.length > 0 && `(${csvData.length}+ rows)`}
             </Button>
@@ -319,6 +449,128 @@ export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
                   onAddCustomField={(fieldName) => handleAddCustomField(field, fieldName)}
                 />
               ))}
+            </div>
+          </div>
+        )}
+
+        {step === 'tagging' && (
+          <div>
+            <h3 className="text-lg font-medium text-clay-900 mb-4">
+              Tag Imported Businesses
+            </h3>
+            <p className="text-sm text-clay-500 mb-6">
+              Assign a tag to organize these {csvData.length} businesses. You can use this tag later to create campaigns.
+            </p>
+
+            {/* Tag Selection */}
+            <div className="space-y-4">
+              {/* Existing Tag Selection */}
+              <div>
+                <label className="block text-sm font-medium text-clay-700 mb-2">
+                  Select Existing Tag
+                </label>
+                <select
+                  value={isCreatingNewTag ? '' : selectedTagId}
+                  onChange={(e) => {
+                    setSelectedTagId(e.target.value)
+                    setIsCreatingNewTag(false)
+                  }}
+                  disabled={isCreatingNewTag}
+                  className="w-full px-4 py-2.5 rounded-xl border border-black/10 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
+                >
+                  <option value="">-- No tag (skip) --</option>
+                  {existingTags.map((tag) => (
+                    <option key={tag.id} value={tag.id}>
+                      {tag.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Divider */}
+              <div className="flex items-center gap-4">
+                <div className="flex-1 h-px bg-clay-200" />
+                <span className="text-sm text-clay-400">or</span>
+                <div className="flex-1 h-px bg-clay-200" />
+              </div>
+
+              {/* Create New Tag */}
+              <div>
+                <label className="flex items-center gap-2 mb-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isCreatingNewTag}
+                    onChange={(e) => {
+                      setIsCreatingNewTag(e.target.checked)
+                      if (e.target.checked) setSelectedTagId('')
+                    }}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-clay-700">Create new tag</span>
+                </label>
+
+                {isCreatingNewTag && (
+                  <div className="space-y-4 pl-6">
+                    {/* Tag Name */}
+                    <div>
+                      <label className="block text-sm font-medium text-clay-700 mb-1">
+                        Tag Name
+                      </label>
+                      <input
+                        type="text"
+                        value={newTagName}
+                        onChange={(e) => setNewTagName(e.target.value)}
+                        placeholder="e.g., January 2026 Import, Restaurants, Chicago"
+                        className="w-full px-4 py-2.5 rounded-xl border border-black/10 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    {/* Tag Color */}
+                    <div>
+                      <label className="block text-sm font-medium text-clay-700 mb-2">
+                        Tag Color
+                      </label>
+                      <div className="flex gap-2">
+                        {TAG_COLORS.map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            onClick={() => setNewTagColor(color)}
+                            className={`w-8 h-8 rounded-full border-2 transition-all ${
+                              newTagColor === color
+                                ? 'border-gray-900 scale-110'
+                                : 'border-transparent hover:border-gray-300'
+                            }`}
+                            style={{ backgroundColor: color }}
+                            title={color}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Preview */}
+                    {newTagName.trim() && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-clay-500">Preview:</span>
+                        <span
+                          className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium text-white"
+                          style={{ backgroundColor: newTagColor }}
+                        >
+                          {newTagName.trim()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Info */}
+            <div className="mt-6 p-4 bg-blue-50 rounded-xl">
+              <p className="text-sm text-blue-800">
+                <strong>Tip:</strong> Tags help you organize businesses by import batch, industry, or location.
+                When creating campaigns, you can select businesses by tag.
+              </p>
             </div>
           </div>
         )}

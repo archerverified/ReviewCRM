@@ -85,6 +85,7 @@ export interface Business {
   email_verification_status: EmailVerificationStatus;
   email_outreach_status: EmailOutreachStatus;
   personalized_message: string | null;
+  outreach_message: string | null;
 
   // Campaign and notes
   notes: string | null;
@@ -219,6 +220,21 @@ export interface GenerateMessageRequest {
 
 export interface GenerateMessageResponse {
   message: string;
+}
+
+// Batch AI message generation (Clay-style enrichment)
+export interface GenerateBatchMessagesRequest {
+  businessIds: string[];
+  prompt: string;
+  campaignDescription?: string;
+  template?: string;
+}
+
+export interface BatchMessageResult {
+  businessId: string;
+  success: boolean;
+  message?: string;
+  error?: string;
 }
 
 // Stage pipeline configuration

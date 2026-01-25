@@ -2,15 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Clay.com inspired global styles */
 @layer base {
+  * {
+    @apply border-black/10;
+  }
+
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    @apply bg-clay-50 text-clay-900;
+    @apply bg-[#F8F6F3] text-gray-900;
   }
 
   /* Custom scrollbar */
@@ -20,22 +23,22 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-clay-100;
+    @apply bg-gray-100;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-clay-300 rounded-full;
+    @apply bg-gray-300 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-clay-400;
+    @apply bg-gray-400;
   }
 }
 
 @layer components {
   /* Clay-style card */
   .clay-card {
-    @apply bg-white rounded-2xl border border-clay-200 shadow-clay p-6;
+    @apply bg-white rounded-2xl border border-black/10 shadow-sm p-6;
   }
 
   /* Clay-style button */
@@ -44,21 +47,21 @@
   }
 
   .clay-btn-primary {
-    @apply clay-btn bg-clay-900 text-white hover:bg-clay-800 active:bg-clay-950;
+    @apply clay-btn bg-gray-900 text-white hover:bg-gray-800 active:bg-gray-950;
   }
 
   .clay-btn-secondary {
-    @apply clay-btn bg-white text-clay-700 border border-clay-300 hover:bg-clay-50 active:bg-clay-100;
+    @apply clay-btn bg-white text-gray-700 border border-black/10 hover:bg-gray-50 active:bg-gray-100;
   }
 
   .clay-btn-ghost {
-    @apply clay-btn text-clay-600 hover:bg-clay-100 active:bg-clay-200;
+    @apply clay-btn text-gray-600 hover:bg-black/5 active:bg-black/10;
   }
 
   /* Clay-style input */
   .clay-input {
-    @apply w-full px-3 py-2 text-sm border border-clay-300 rounded-lg bg-white placeholder-clay-400
-           focus:outline-none focus:ring-2 focus:ring-accent-blue focus:border-transparent transition-all;
+    @apply w-full px-3 py-2 text-sm border border-black/10 rounded-lg bg-white placeholder-gray-400
+           focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all;
   }
 
   /* Clay-style badge */
@@ -67,7 +70,7 @@
   }
 
   .clay-badge-gray {
-    @apply clay-badge bg-clay-100 text-clay-700;
+    @apply clay-badge bg-gray-100 text-gray-700;
   }
 
   .clay-badge-blue {
@@ -92,15 +95,21 @@
   }
 
   .clay-table th {
-    @apply px-4 py-3 text-left text-xs font-medium text-clay-500 uppercase tracking-wider bg-clay-50 border-b border-clay-200;
+    @apply px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 border-b border-black/10;
   }
 
   .clay-table td {
-    @apply px-4 py-4 text-sm text-clay-700 border-b border-clay-100;
+    @apply px-4 py-4 text-sm text-gray-700 border-b border-black/10;
   }
 
   .clay-table tr:hover td {
-    @apply bg-clay-50;
+    @apply bg-gray-50;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
 }
 
@@ -110,11 +119,11 @@
   --ag-header-background-color: #fafafa;
   --ag-odd-row-background-color: #ffffff;
   --ag-row-hover-color: #f5f5f5;
-  --ag-border-color: #e5e5e5;
+  --ag-border-color: rgba(0, 0, 0, 0.1);
   --ag-header-foreground-color: #525252;
   --ag-foreground-color: #404040;
   --ag-secondary-foreground-color: #737373;
-  --ag-row-border-color: #f5f5f5;
+  --ag-row-border-color: rgba(0, 0, 0, 0.05);
   --ag-cell-horizontal-padding: 16px;
   --ag-header-height: 48px;
   --ag-row-height: 52px;

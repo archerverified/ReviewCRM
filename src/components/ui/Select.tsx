@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useState } from 'react';
+import { Fragment, useState, useId } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { cn } from '@/lib/utils';
 import { CustomFieldInput } from './CustomFieldInput';
@@ -33,6 +33,11 @@ export function Select({
   allowCustomFields = false,
   onAddCustomField
 }: SelectProps) {
+  const id = useId();
+  const labelId = `${id}-label`;
+  const errorId = `${id}-error`;
+  const buttonId = `${id}-button`;
+
   const [showCustomInput, setShowCustomInput] = useState(false);
   const selectedOption = options.find(opt => opt.value === value);
 
@@ -58,13 +63,21 @@ export function Select({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+        <label
+          id={labelId}
+          htmlFor={buttonId}
+          className="block text-sm font-medium text-gray-700 mb-1.5"
+        >
           {label}
         </label>
       )}
       <Listbox value={value} onChange={handleChange} disabled={showCustomInput}>
         <div className="relative">
           <Listbox.Button
+            id={buttonId}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? errorId : undefined}
+            aria-labelledby={label ? labelId : undefined}
             className={cn(
               'relative w-full px-4 py-2 rounded-xl border border-black/10 bg-white text-left',
               'focus:outline-none focus:ring-2 focus:ring-blue-500',
@@ -79,7 +92,7 @@ export function Select({
             )}>
               {selectedOption?.label || placeholder || 'Select...'}
             </span>
-            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3" aria-hidden="true">
               <svg className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
@@ -121,7 +134,7 @@ export function Select({
                       active ? 'bg-blue-50 text-blue-600' : 'text-accent-blue'
                     )}
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
                     <span className="font-medium">Add custom field...</span>
@@ -141,7 +154,9 @@ export function Select({
       )}
 
       {error && (
-        <p className="mt-1.5 text-sm text-red-600">{error}</p>
+        <p id={errorId} className="mt-1.5 text-sm text-red-600" role="alert">
+          {error}
+        </p>
       )}
     </div>
   );

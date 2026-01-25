@@ -1,0 +1,32 @@
+0 verbose cli C:\Program Files\nodejs\node.exe C:\Users\OxGh0\AppData\Roaming\npm\node_modules\npm\bin\npm-cli.js
+1 info using npm@11.8.0
+2 info using node@v24.11.1
+3 silly config load:file:C:\Users\OxGh0\AppData\Roaming\npm\node_modules\npm\npmrc
+4 silly config load:file:C:\Users\OxGh0\.npmrc
+5 silly config load:file:C:\Users\OxGh0\AppData\Roaming\npm\etc\npmrc
+6 verbose title npm config get prefix
+0 verbose cli C:\Program Files\nodejs\node.exe C:\Users\OxGh0\AppData\Roaming\npm\node_modules\npm\bin\npm-cli.js
+7 verbose argv "--global" "config" "get" "prefix"
+1 info using npm@11.8.0
+2 info using node@v24.11.1
+8 verbose logfile logs-max:10 dir:C:\Users\OxGh0\ReviewCRM\.cache\npm\_logs\2026-01-25T15_40_35_070Z-
+3 silly config load:file:C:\Users\OxGh0\AppData\Roaming\npm\node_modules\npm\npmrc
+4 silly config load:file:C:\Users\OxGh0\.npmrc
+5 silly config load:file:C:\Users\OxGh0\AppData\Roaming\npm\etc\npmrc
+6 verbose title npm config get prefix
+9 verbose logfile C:\Users\OxGh0\ReviewCRM\.cache\npm\_logs\2026-01-25T15_40_35_070Z-debug-0.log
+7 verbose argv "--global" "config" "get" "prefix"
+8 verbose logfile logs-max:10 dir:C:\Users\OxGh0\ReviewCRM\.cache\npm\_logs\2026-01-25T15_40_35_070Z-
+9 verbose logfile C:\Users\OxGh0\ReviewCRM\.cache\npm\_logs\2026-01-25T15_40_35_070Z-debug-0.log
+10 verbose cwd C:\Users\OxGh0\ReviewCRM
+11 verbose os Windows_NT 10.0.26200
+12 verbose node v24.11.1
+13 verbose npm  v11.8.0
+14 verbose exit 0
+15 info ok
+10 verbose cwd C:\Users\OxGh0\ReviewCRM
+11 verbose os Windows_NT 10.0.26200
+12 verbose node v24.11.1
+13 verbose npm  v11.8.0
+14 verbose exit 0
+15 info ok

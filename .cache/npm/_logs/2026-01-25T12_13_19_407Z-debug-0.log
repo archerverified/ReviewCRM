@@ -11,3 +11,9 @@
 10 verbose logfile C:\Users\OxGh0\ReviewCRM\.cache\npm\_logs\2026-01-25T12_13_19_407Z-debug-0.log
 11 silly logfile done cleaning log files
 12 http fetch GET 200 https://registry.npmjs.org/npm 243ms
+13 verbose cwd C:\Users\OxGh0\ReviewCRM
+14 verbose os Windows_NT 10.0.26200
+15 verbose node v24.11.1
+16 verbose npm  v11.8.0
+17 verbose exit 0
+18 info ok

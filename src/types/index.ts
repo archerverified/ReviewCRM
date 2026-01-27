@@ -1,5 +1,6 @@
-// ReviewCRM TypeScript Types v2.0
+// ReviewCRM TypeScript Types v2.1
 // Matches corrected database schema for 2ndimpression.co
+// Includes Clay.com-style CRM features
 
 // 19 pipeline stages (from Ops Manual Section 09)
 export type PipelineStage =
@@ -43,12 +44,23 @@ export type EmailOutreachStatus =
 // Pricing tiers: standard/volume/enterprise
 export type PricingTier = 'standard' | 'volume' | 'enterprise';
 
+// Contact category (for Contacts view) - All categories per spec
+export type ContactCategory = 'contact' | 'business' | 'partner' | 'customer';
+
+// Contact type (same as category for filtering)
+export type ContactType = 'contact' | 'business' | 'partner' | 'customer';
+
+// Contacted status for tracking outreach
+export type ContactedStatus = 'yes' | 'no' | 'dnr';
+
 // Core business entity (matches D7 Lead Finder CSV format)
 export interface Business {
   id: string;
 
   // Basic info
   business_name: string;
+  first_name: string | null;
+  last_name: string | null;
   contact_name: string | null;
   email: string | null;
   phone: string | null;
@@ -57,6 +69,14 @@ export interface Business {
   city: string | null;
   state: string | null;
   industry: string | null;
+
+  // Contact type and status
+  contact_type: ContactType | null;
+  contacted: ContactedStatus | null;
+
+  // Partner-specific fields
+  resource: string | null;
+  speciality: string | null;
 
   // Google Review Data
   google_rating: number | null;
@@ -90,6 +110,11 @@ export interface Business {
   // Campaign and notes
   notes: string | null;
   campaign_id: string | null;
+
+  // Clay.com-style contact fields
+  lifecycle_stage: string | null;
+  category: ContactCategory | null;
+  last_activity_at: string | null;
 
   // Timestamps
   created_at: string;
@@ -153,6 +178,146 @@ export interface StageHistory {
   changed_by: string;
   notes: string | null;
   changed_at: string;
+}
+
+// ============================================
+// EMAIL ACCOUNTS (PlusVibe-style)
+// ============================================
+
+export type EmailAccountProvider = 'google' | 'microsoft' | 'smtp';
+export type EmailAccountStatus = 'active' | 'paused' | 'warming' | 'error';
+
+export interface EmailAccount {
+  id: string;
+  email: string;
+  provider: EmailAccountProvider;
+  access_token: string | null;
+  refresh_token: string | null;
+  token_expires_at: string | null;
+  smtp_host: string | null;
+  smtp_port: number | null;
+  smtp_username: string | null;
+  smtp_password: string | null;
+  status: EmailAccountStatus;
+  warmup_enabled: boolean;
+  daily_sent: number;
+  daily_quota: number;
+  health_score: number;
+  spam_rate: number;
+  bounce_rate: number;
+  dkim_verified: boolean;
+  spf_verified: boolean;
+  dmarc_verified: boolean;
+  domain: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// ============================================
+// AI AGENTS (Claygents)
+// ============================================
+
+export type AIAgentStatus = 'active' | 'draft' | 'archived';
+
+export interface AIAgent {
+  id: string;
+  name: string;
+  description: string | null;
+  prompt: string;
+  version: number;
+  model: string;
+  temperature: number;
+  max_tokens: number;
+  mcp_servers: string[];
+  webhook_url: string | null;
+  status: AIAgentStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+// ============================================
+// AI API KEYS
+// ============================================
+
+export type AIApiKeyProvider = 'openai' | 'anthropic' | 'firecrawl' | 'custom';
+
+export interface AIApiKey {
+  id: string;
+  name: string;
+  provider: AIApiKeyProvider;
+  api_key_encrypted: string;
+  is_default: boolean;
+  created_at: string;
+}
+
+// ============================================
+// TASKS
+// ============================================
+
+export type TaskStatus = 'todo' | 'in_progress' | 'done';
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
+
+export interface Task {
+  id: string;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  contact_id: string | null;
+  campaign_id: string | null;
+  pipeline_stage: string | null;
+  assigned_to: string | null;
+  due_date: string | null;
+  labels: string[];
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+  // Joined fields (optional)
+  contact?: Business;
+  campaign?: Campaign;
+}
+
+export interface TaskChecklist {
+  id: string;
+  task_id: string;
+  title: string;
+  is_completed: boolean;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface TaskComment {
+  id: string;
+  task_id: string;
+  content: string;
+  author: string | null;
+  created_at: string;
+}
+
+// ============================================
+// GLOBAL BLOCKLIST
+// ============================================
+
+export interface GlobalBlocklistEntry {
+  id: string;
+  email: string | null;
+  domain: string | null;
+  reason: string | null;
+  created_at: string;
+}
+
+// ============================================
+// CAMPAIGN SEQUENCES
+// ============================================
+
+export interface CampaignSequence {
+  id: string;
+  campaign_id: string;
+  step_number: number;
+  subject_template: string;
+  body_template: string;
+  delay_days: number;
+  created_at: string;
 }
 
 // Filter state for UI
@@ -266,6 +431,89 @@ export const EMAIL_OUTREACH_STATUSES: EmailOutreachStatus[] = [
   'bounced',
   'unsubscribed',
 ];
+
+// Contact categories constant array
+export const CONTACT_CATEGORIES: ContactCategory[] = [
+  'contact',
+  'business',
+  'partner',
+  'customer',
+];
+
+// Contact types constant array
+export const CONTACT_TYPES: ContactType[] = [
+  'contact',
+  'business',
+  'partner',
+  'customer',
+];
+
+// Contacted statuses constant array
+export const CONTACTED_STATUSES: ContactedStatus[] = [
+  'yes',
+  'no',
+  'dnr',
+];
+
+// Email account statuses constant array
+export const EMAIL_ACCOUNT_STATUSES: EmailAccountStatus[] = [
+  'active',
+  'paused',
+  'warming',
+  'error',
+];
+
+// Email account providers constant array
+export const EMAIL_ACCOUNT_PROVIDERS: EmailAccountProvider[] = [
+  'google',
+  'microsoft',
+  'smtp',
+];
+
+// Task statuses constant array
+export const TASK_STATUSES: TaskStatus[] = [
+  'todo',
+  'in_progress',
+  'done',
+];
+
+// Task priorities constant array
+export const TASK_PRIORITIES: TaskPriority[] = [
+  'low',
+  'medium',
+  'high',
+  'urgent',
+];
+
+// AI agent statuses constant array
+export const AI_AGENT_STATUSES: AIAgentStatus[] = [
+  'active',
+  'draft',
+  'archived',
+];
+
+// AI API key providers constant array
+export const AI_API_KEY_PROVIDERS: AIApiKeyProvider[] = [
+  'openai',
+  'anthropic',
+  'firecrawl',
+  'custom',
+];
+
+// Task priority configuration
+export const TASK_PRIORITY_CONFIG = {
+  low: { label: 'Low', color: '#9ca3af' },
+  medium: { label: 'Medium', color: '#3b82f6' },
+  high: { label: 'High', color: '#f59e0b' },
+  urgent: { label: 'Urgent', color: '#ef4444' },
+} as const;
+
+// Task status configuration
+export const TASK_STATUS_CONFIG = {
+  todo: { label: 'To Do', color: '#6b7280' },
+  in_progress: { label: 'In Progress', color: '#3b82f6' },
+  done: { label: 'Done', color: '#10b981' },
+} as const;
 
 // Pricing tiers configuration (from Ops Manual)
 export const PRICING_TIERS = {

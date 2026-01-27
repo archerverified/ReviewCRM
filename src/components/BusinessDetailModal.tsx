@@ -3,7 +3,11 @@
 import { Business, getStageInfo, PIPELINE_STAGES } from '@/types';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
-import { useState } from 'react';
+import { Input } from '@/components/ui/Input';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
+import { Pencil, Save, X } from 'lucide-react';
 
 interface BusinessDetailModalProps {
   isOpen: boolean;
@@ -12,6 +16,7 @@ interface BusinessDetailModalProps {
   onDelete?: (businessId: string) => void;
   onEdit?: (business: Business) => void;
   onStageChange?: (businessId: string, newStage: string) => void;
+  onBusinessUpdated?: (business: Business) => void;
 }
 
 export function BusinessDetailModal({
@@ -21,10 +26,80 @@ export function BusinessDetailModal({
   onDelete,
   onEdit,
   onStageChange,
+  onBusinessUpdated,
 }: BusinessDetailModalProps) {
   const [isChangingStage, setIsChangingStage] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [editedBusiness, setEditedBusiness] = useState<Partial<Business>>({});
+
+  // Reset edit mode when modal closes or business changes
+  useEffect(() => {
+    if (!isOpen || !business) {
+      setIsEditMode(false);
+      setEditedBusiness({});
+    } else {
+      setEditedBusiness({
+        business_name: business.business_name,
+        contact_name: business.contact_name,
+        email: business.email,
+        phone: business.phone,
+        city: business.city,
+        state: business.state,
+        industry: business.industry,
+        website_url: business.website_url,
+        notes: business.notes,
+      });
+    }
+  }, [isOpen, business]);
 
   if (!business) return null;
+
+  const handleSaveEdit = async () => {
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('businesses')
+        .update({
+          ...editedBusiness,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', business.id);
+
+      if (error) throw error;
+
+      const updatedBusiness = { ...business, ...editedBusiness };
+      if (onBusinessUpdated) {
+        onBusinessUpdated(updatedBusiness as Business);
+      }
+      setIsEditMode(false);
+      toast.success('Contact updated successfully');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to update: ${errorMessage}`);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setEditedBusiness({
+      business_name: business.business_name,
+      contact_name: business.contact_name,
+      email: business.email,
+      phone: business.phone,
+      city: business.city,
+      state: business.state,
+      industry: business.industry,
+      website_url: business.website_url,
+      notes: business.notes,
+    });
+  };
+
+  const updateField = (field: keyof Business, value: string | null) => {
+    setEditedBusiness(prev => ({ ...prev, [field]: value }));
+  };
 
   const stageInfo = getStageInfo(business.pipeline_stage);
 
@@ -47,45 +122,138 @@ export function BusinessDetailModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={business.business_name}
+      title={
+        <div className="flex items-center justify-between w-full">
+          <span>{isEditMode ? 'Edit Contact' : business.business_name}</span>
+          {!isEditMode && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsEditMode(true)}
+              className="ml-4"
+            >
+              <Pencil className="w-4 h-4 mr-1" />
+              Edit
+            </Button>
+          )}
+        </div>
+      }
       size="xl"
       footer={
-        <>
-          <Button variant="ghost" onClick={onClose}>
-            Close
-          </Button>
-          {onEdit && (
-            <Button variant="secondary" onClick={() => onEdit(business)}>
-              Edit Business
+        isEditMode ? (
+          <>
+            <Button variant="ghost" onClick={handleCancelEdit} disabled={isSaving}>
+              <X className="w-4 h-4 mr-1" />
+              Cancel
             </Button>
-          )}
-          {onDelete && (
-            <Button variant="danger" onClick={handleDelete}>
-              Delete
+            <Button onClick={handleSaveEdit} disabled={isSaving}>
+              <Save className="w-4 h-4 mr-1" />
+              {isSaving ? 'Saving...' : 'Save Changes'}
             </Button>
-          )}
-        </>
+          </>
+        ) : (
+          <>
+            <Button variant="ghost" onClick={onClose}>
+              Close
+            </Button>
+            {onDelete && (
+              <Button variant="danger" onClick={handleDelete}>
+                Delete
+              </Button>
+            )}
+          </>
+        )
       }
     >
       <div className="space-y-6">
         {/* Contact & Location */}
         <section className="bg-gray-50 rounded-xl p-4">
           <h3 className="text-sm font-semibold text-gray-900 mb-3">Contact & Location</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InfoField label="Contact Name" value={business.contact_name} />
-            <InfoField label="Email" value={business.email} copyable />
-            <InfoField label="Phone" value={business.phone} copyable />
-            <InfoField label="Location" value={business.city && business.state ? `${business.city}, ${business.state}` : business.city || business.state} />
-            <InfoField label="Industry" value={business.industry} />
-            <div className="md:col-span-2">
-              <InfoField label="Website" value={business.website_url} link />
-            </div>
-            {business.gmaps_url && (
-              <div className="md:col-span-2">
-                <InfoField label="Google Maps" value={business.gmaps_url} link />
+          {isEditMode ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Business Name</label>
+                <Input
+                  value={editedBusiness.business_name || ''}
+                  onChange={(e) => updateField('business_name', e.target.value)}
+                  placeholder="Business name"
+                />
               </div>
-            )}
-          </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Contact Name</label>
+                <Input
+                  value={editedBusiness.contact_name || ''}
+                  onChange={(e) => updateField('contact_name', e.target.value)}
+                  placeholder="Contact name"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Email</label>
+                <Input
+                  type="email"
+                  value={editedBusiness.email || ''}
+                  onChange={(e) => updateField('email', e.target.value)}
+                  placeholder="Email address"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Phone</label>
+                <Input
+                  value={editedBusiness.phone || ''}
+                  onChange={(e) => updateField('phone', e.target.value)}
+                  placeholder="Phone number"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">City</label>
+                <Input
+                  value={editedBusiness.city || ''}
+                  onChange={(e) => updateField('city', e.target.value)}
+                  placeholder="City"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">State</label>
+                <Input
+                  value={editedBusiness.state || ''}
+                  onChange={(e) => updateField('state', e.target.value)}
+                  placeholder="State"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Industry</label>
+                <Input
+                  value={editedBusiness.industry || ''}
+                  onChange={(e) => updateField('industry', e.target.value)}
+                  placeholder="Industry"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Website</label>
+                <Input
+                  value={editedBusiness.website_url || ''}
+                  onChange={(e) => updateField('website_url', e.target.value)}
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InfoField label="Contact Name" value={business.contact_name} />
+              <InfoField label="Email" value={business.email} copyable />
+              <InfoField label="Phone" value={business.phone} copyable />
+              <InfoField label="Location" value={business.city && business.state ? `${business.city}, ${business.state}` : business.city || business.state} />
+              <InfoField label="Industry" value={business.industry} />
+              <div className="md:col-span-2">
+                <InfoField label="Website" value={business.website_url} link />
+              </div>
+              {business.gmaps_url && (
+                <div className="md:col-span-2">
+                  <InfoField label="Google Maps" value={business.gmaps_url} link />
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
         {/* Review Metrics */}
@@ -244,12 +412,21 @@ export function BusinessDetailModal({
         )}
 
         {/* Notes */}
-        {business.notes && (
+        {(business.notes || isEditMode) && (
           <section className="bg-gray-50 rounded-xl p-4">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">Notes</h3>
-            <div className="bg-white rounded-lg p-3 border border-gray-200">
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">{business.notes}</p>
-            </div>
+            {isEditMode ? (
+              <textarea
+                value={editedBusiness.notes || ''}
+                onChange={(e) => updateField('notes', e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 h-32 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Add notes about this contact..."
+              />
+            ) : (
+              <div className="bg-white rounded-lg p-3 border border-gray-200">
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">{business.notes}</p>
+              </div>
+            )}
           </section>
         )}
 

@@ -74,7 +74,7 @@ export default function BusinessesPageExample() {
   const handleRowClick = (business: Business, event: React.MouseEvent) => {
     // Don't open modal if clicking on checkbox
     const target = event.target as HTMLElement;
-    if (target.type === 'checkbox' || target.closest('input[type="checkbox"]')) {
+    if ((target as HTMLInputElement).type === 'checkbox' || target.closest('input[type="checkbox"]')) {
       return;
     }
 

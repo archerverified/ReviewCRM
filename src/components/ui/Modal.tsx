@@ -7,13 +7,14 @@ import { cn } from '@/lib/utils';
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
+  title: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  maxHeight?: string;
 }
 
-export function Modal({ isOpen, onClose, title, children, footer, size = 'md' }: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, footer, size = 'md', maxHeight }: ModalProps) {
   const id = useId();
   const titleId = `${id}-title`;
   const modalRef = useRef<HTMLDivElement>(null);
@@ -95,13 +96,15 @@ export function Modal({ isOpen, onClose, title, children, footer, size = 'md' }:
     sm: 'max-w-md',
     md: 'max-w-2xl',
     lg: 'max-w-4xl',
-    xl: 'max-w-6xl'
+    xl: 'max-w-6xl',
+    full: 'max-w-[700px]'
   };
 
   return createPortal(
     <div className="fixed inset-0 z-50 overflow-y-auto">
+      {/* Backdrop with blur */}
       <div
-        className="fixed inset-0 bg-black/50 transition-opacity"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -113,29 +116,37 @@ export function Modal({ isOpen, onClose, title, children, footer, size = 'md' }:
           aria-modal="true"
           aria-labelledby={titleId}
           className={cn(
-            'relative w-full bg-white rounded-xl shadow-2xl',
+            'relative w-full bg-white rounded-2xl shadow-2xl',
+            'animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-300',
             sizeStyles[size]
           )}
         >
-          <div className="flex items-center justify-between px-6 py-4 border-b border-black/10">
+          {/* Header with gradient accent */}
+          <div className="relative flex items-center justify-between px-6 py-5 border-b border-gray-100">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-t-2xl" />
             <h2 id={titleId} className="text-xl font-semibold text-gray-900">{title}</h2>
             <button
               onClick={onClose}
               aria-label="Close"
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="p-2 -mr-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
             >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
 
-          <div className="px-6 py-4">
+          {/* Content */}
+          <div
+            className={cn('px-6 py-5', maxHeight && 'overflow-y-auto')}
+            style={maxHeight ? { maxHeight } : undefined}
+          >
             {children}
           </div>
 
+          {/* Footer */}
           {footer && (
-            <div className="px-6 py-4 border-t border-black/10 flex justify-end gap-3">
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl flex justify-end gap-3">
               {footer}
             </div>
           )}

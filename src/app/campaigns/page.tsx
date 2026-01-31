@@ -75,10 +75,10 @@ export default function CampaignsPage() {
   }
 
   // Sample campaigns for demo when empty
-  const sampleCampaigns = [
-    { id: '1', name: 'DFW Apartments', status: 'ready' as const, total_count: 281, emails_sent: 0 },
-    { id: '2', name: 'Casino Test', status: 'ready' as const, total_count: 383, emails_sent: 0 },
-    { id: '3', name: 'Test 2', status: 'draft' as const, total_count: 342, emails_sent: 0 },
+  const sampleCampaigns: Campaign[] = [
+    { id: '1', name: 'DFW Apartments', status: 'ready', total_count: 281, emails_sent: 0, emails_opened: 0, replies_received: 0, deals_closed: 0, total_revenue: 0, businesses_count: 281, generated_count: 0, description: null, template: null, custom_instructions: null, ai_instructions: null, message_template: null, plusvibe_campaign_id: null, plusvibe_exported_at: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: '2', name: 'Casino Test', status: 'ready', total_count: 383, emails_sent: 0, emails_opened: 0, replies_received: 0, deals_closed: 0, total_revenue: 0, businesses_count: 383, generated_count: 0, description: null, template: null, custom_instructions: null, ai_instructions: null, message_template: null, plusvibe_campaign_id: null, plusvibe_exported_at: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: '3', name: 'Test 2', status: 'draft', total_count: 342, emails_sent: 0, emails_opened: 0, replies_received: 0, deals_closed: 0, total_revenue: 0, businesses_count: 342, generated_count: 0, description: null, template: null, custom_instructions: null, ai_instructions: null, message_template: null, plusvibe_campaign_id: null, plusvibe_exported_at: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
   ]
 
   const displayCampaigns = campaigns.length > 0 ? campaigns : sampleCampaigns

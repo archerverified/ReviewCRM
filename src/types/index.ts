@@ -231,6 +231,7 @@ export interface AIAgent {
   mcp_servers: string[];
   webhook_url: string | null;
   status: AIAgentStatus;
+  total_runs: number;
   created_at: string;
   updated_at: string;
 }

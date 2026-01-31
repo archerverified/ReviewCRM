@@ -257,8 +257,8 @@ export default function CampaignDetailPage() {
           action: () => {
             setBusinesses((prev) =>
               [...prev].sort((a, b) => {
-                const aVal = String((a as Record<string, unknown>)[column.id] || '');
-                const bVal = String((b as Record<string, unknown>)[column.id] || '');
+                const aVal = String((a as unknown as Record<string, unknown>)[column.id] || '');
+                const bVal = String((b as unknown as Record<string, unknown>)[column.id] || '');
                 return aVal.localeCompare(bVal);
               })
             );
@@ -270,8 +270,8 @@ export default function CampaignDetailPage() {
           action: () => {
             setBusinesses((prev) =>
               [...prev].sort((a, b) => {
-                const aVal = String((a as Record<string, unknown>)[column.id] || '');
-                const bVal = String((b as Record<string, unknown>)[column.id] || '');
+                const aVal = String((a as unknown as Record<string, unknown>)[column.id] || '');
+                const bVal = String((b as unknown as Record<string, unknown>)[column.id] || '');
                 return bVal.localeCompare(aVal);
               })
             );
@@ -295,7 +295,7 @@ export default function CampaignDetailPage() {
           label: 'Cut',
           shortcut: '⌘X',
           action: () => {
-            const value = (business as Record<string, unknown>)[column.id];
+            const value = (business as unknown as Record<string, unknown>)[column.id];
             navigator.clipboard?.writeText(String(value || ''));
             updateCell(business.id, column.id, column.type === 'number' ? 0 : '');
           },
@@ -305,7 +305,7 @@ export default function CampaignDetailPage() {
           label: 'Copy',
           shortcut: '⌘C',
           action: () => {
-            const value = (business as Record<string, unknown>)[column.id];
+            const value = (business as unknown as Record<string, unknown>)[column.id];
             navigator.clipboard?.writeText(String(value || ''));
           },
         },
@@ -380,7 +380,7 @@ export default function CampaignDetailPage() {
     const rows = businesses.map((b) =>
       visibleColumns
         .map((col) => {
-          const value = (b as Record<string, unknown>)[col.id];
+          const value = (b as unknown as Record<string, unknown>)[col.id];
           return `"${String(value ?? '').replace(/"/g, '""')}"`;
         })
         .join(',')
@@ -636,7 +636,7 @@ export default function CampaignDetailPage() {
                     className="p-0 border-b border-r border-clay-200 max-w-[150px] min-w-[80px] relative"
                   >
                     <EditableCell
-                      value={(business as Record<string, unknown>)[col.id] as string | number ?? ''}
+                      value={(business as unknown as Record<string, unknown>)[col.id] as string | number ?? ''}
                       onChange={(val) => updateCell(business.id, col.id, val)}
                       type={col.type === 'number' ? 'number' : col.type === 'url' ? 'url' : 'text'}
                       isEditing={isEditing(business.id, col.id)}

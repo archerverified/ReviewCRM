@@ -437,12 +437,12 @@ export default function ContactsPage() {
                   <td className="px-4 py-4 text-sm text-clay-700">{business.business_name}</td>
                   <td className="px-4 py-4 text-sm text-clay-600">{business.email || '—'}</td>
                   <td className="px-4 py-4 text-sm text-clay-700">
-                    {business.total_reviews ? `⭐ ${(business.avg_rating || 0).toFixed(1)}` : '—'}
+                    {business.total_reviews ? `⭐ ${(business.google_rating || 0).toFixed(1)}` : '—'}
                   </td>
                   <td className="px-4 py-4 text-sm text-clay-700">{business.total_reviews || '—'}</td>
                   <td className="px-4 py-4">
-                    <Badge variant={business.pipeline_stage === 'warm' ? 'yellow' : business.pipeline_stage === 'closed' ? 'green' : 'gray'}>
-                      {stageConfig?.label || 'Cold'}
+                    <Badge variant={business.pipeline_stage === 'positive_reply' || business.pipeline_stage === 'qualified_lead' ? 'yellow' : business.pipeline_stage === 'deal_closed' ? 'green' : 'gray'}>
+                      {stageConfig?.label || 'Lead'}
                     </Badge>
                   </td>
                 </tr>

@@ -148,8 +148,8 @@ export default function DashboardPage() {
                     <div className="text-xs text-clay-500">{biz.city || 'Unknown'}, {biz.state || ''}</div>
                   </div>
                 </div>
-                <Badge variant={biz.pipeline_stage === 'warm' ? 'yellow' : 'gray'}>
-                  {biz.pipeline_stage || 'Cold'}
+                <Badge variant={biz.pipeline_stage === 'positive_reply' || biz.pipeline_stage === 'qualified_lead' ? 'yellow' : biz.pipeline_stage === 'deal_closed' ? 'green' : 'gray'}>
+                  {biz.pipeline_stage?.replace(/_/g, ' ') || 'Lead'}
                 </Badge>
               </div>
             ))

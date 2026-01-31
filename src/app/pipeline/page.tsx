@@ -438,7 +438,7 @@ export default function PipelinePage() {
 
   // Calculate stats
   const totalValue = businesses.reduce((sum, b) => sum + b.total_project_value, 0)
-  const activeDeals = businesses.filter(b => b.pipeline_stage !== 'lead_scraped' && b.pipeline_stage !== 'cold').length
+  const activeDeals = businesses.filter(b => b.pipeline_stage !== 'lead_scraped' && b.pipeline_stage !== 'do_not_contact').length
 
   if (loading) {
     return (

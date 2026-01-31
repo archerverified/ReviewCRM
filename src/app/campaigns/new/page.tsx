@@ -161,14 +161,14 @@ export default function NewCampaignPage() {
       <div className="p-6">
         {/* Header Skeleton */}
         <div className="animate-pulse">
-          <div className="h-48 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 rounded-2xl mb-8" />
+          <div className="h-48 bg-clay-200 rounded-lg mb-8" />
           <div className="space-y-6 max-w-4xl mx-auto">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-xl border border-gray-200 p-6">
-                <div className="h-6 bg-gray-200 rounded w-1/4 mb-4" />
+              <div key={i} className="bg-white rounded-xl border border-clay-200 p-6">
+                <div className="h-6 bg-clay-200 rounded w-1/4 mb-4" />
                 <div className="space-y-3">
-                  <div className="h-10 bg-gray-100 rounded" />
-                  <div className="h-10 bg-gray-100 rounded" />
+                  <div className="h-10 bg-clay-100 rounded" />
+                  <div className="h-10 bg-clay-100 rounded" />
                 </div>
               </div>
             ))}
@@ -180,11 +180,11 @@ export default function NewCampaignPage() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Enhanced Header with Gradient */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 rounded-2xl p-6 text-white">
-        <div className="absolute inset-0 bg-black/10" />
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl" />
+      {/* Header */}
+      <div className="relative overflow-hidden bg-clay-800 rounded-lg p-6 text-white">
+        <div className="absolute inset-0 bg-gradient-to-br from-clay-900/50 to-clay-700/30" />
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-clay-600/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-clay-500/10 rounded-full blur-3xl" />
 
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-4">
@@ -217,41 +217,41 @@ export default function NewCampaignPage() {
       {/* Form Container */}
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Campaign Details */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-gray-50 to-gray-100/50 px-6 py-4 border-b border-gray-200">
+        <div className="bg-white rounded-xl border border-clay-200 shadow-sm overflow-hidden">
+          <div className="bg-clay-50 px-6 py-4 border-b border-clay-200">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-clay-600 rounded-lg flex items-center justify-center">
                 <FileText className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Campaign Details</h2>
-                <p className="text-xs text-gray-500">Basic information about your campaign</p>
+                <h2 className="text-lg font-semibold text-clay-900">Campaign Details</h2>
+                <p className="text-xs text-clay-500">Basic information about your campaign</p>
               </div>
             </div>
           </div>
 
           <div className="p-6 space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Campaign Name <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-clay-700 mb-2">
+                Campaign Name <span className="text-status-red-text">*</span>
               </label>
               <div className="relative">
-                <Target className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Target className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-clay-400" />
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   onBlur={() => setTouched({ ...touched, name: true })}
                   placeholder="e.g., January Outreach - Restaurants"
-                  className={`w-full pl-10 pr-4 py-3 border rounded-xl text-sm transition-all duration-200 ${
+                  className={`w-full pl-10 pr-4 py-3 border rounded-lg text-sm transition-all duration-200 ${
                     touched.name && !name.trim()
-                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20 bg-red-50'
-                      : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500/20 bg-white'
-                  } focus:outline-none focus:ring-4`}
+                      ? 'border-status-red-dot focus:border-status-red-dot focus:ring-status-red-bg bg-status-red-bg/20'
+                      : 'border-clay-300 focus:border-clay-500 focus:ring-clay-200 bg-white'
+                  } focus:outline-none focus:ring-2`}
                 />
               </div>
               {touched.name && !name.trim() && (
-                <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1">
+                <p className="mt-1.5 text-xs text-status-red-text flex items-center gap-1">
                   <Info className="w-3 h-3" />
                   Campaign name is required
                 </p>
@@ -259,17 +259,17 @@ export default function NewCampaignPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description <span className="text-gray-400 text-xs font-normal">(optional)</span>
+              <label className="block text-sm font-medium text-clay-700 mb-2">
+                Description <span className="text-clay-400 text-xs font-normal">(optional)</span>
               </label>
               <div className="relative">
-                <FileText className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                <FileText className="absolute left-3 top-3 w-4 h-4 text-clay-400" />
                 <input
                   type="text"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Brief description of this campaign"
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200"
+                  className="w-full pl-10 pr-4 py-3 border border-clay-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-clay-200 focus:border-clay-500 transition-all duration-200"
                 />
               </div>
             </div>
@@ -277,22 +277,22 @@ export default function NewCampaignPage() {
         </div>
 
         {/* Target Audience - Tag Selection */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-gray-50 to-gray-100/50 px-6 py-4 border-b border-gray-200">
+        <div className="bg-white rounded-xl border border-clay-200 shadow-sm overflow-hidden">
+          <div className="bg-clay-50 px-6 py-4 border-b border-clay-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-clay-600 rounded-lg flex items-center justify-center">
                   <Users className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Target Audience</h2>
-                  <p className="text-xs text-gray-500">Select businesses by tag</p>
+                  <h2 className="text-lg font-semibold text-clay-900">Target Audience</h2>
+                  <p className="text-xs text-clay-500">Select businesses by tag</p>
                 </div>
               </div>
               {selectedTagIds.length > 0 && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 rounded-lg">
-                  <Tag className="w-4 h-4 text-indigo-600" />
-                  <span className="text-sm font-semibold text-indigo-600">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-clay-100 rounded-lg">
+                  <Tag className="w-4 h-4 text-clay-600" />
+                  <span className="text-sm font-semibold text-clay-700">
                     {selectedTagIds.length} tag{selectedTagIds.length !== 1 ? 's' : ''} selected
                   </span>
                 </div>
@@ -302,17 +302,17 @@ export default function NewCampaignPage() {
 
           <div className="p-6">
             {tags.length === 0 ? (
-              <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl border border-gray-200">
-                <div className="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Tag className="w-8 h-8 text-gray-500" />
+              <div className="text-center py-12 bg-clay-50 rounded-xl border border-clay-200">
+                <div className="w-16 h-16 bg-clay-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Tag className="w-8 h-8 text-clay-500" />
                 </div>
-                <p className="text-gray-700 font-medium mb-1">No tags found</p>
-                <p className="text-sm text-gray-500 max-w-sm mx-auto">
+                <p className="text-clay-700 font-medium mb-1">No tags found</p>
+                <p className="text-sm text-clay-500 max-w-sm mx-auto">
                   Import businesses and assign tags to create campaigns.
                 </p>
                 <Link
                   href="/businesses"
-                  className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-200 shadow-lg shadow-indigo-500/25 text-sm font-medium"
+                  className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-clay-800 text-white rounded-lg hover:bg-clay-700 transition-all duration-200 text-sm font-medium"
                 >
                   <Plus className="w-4 h-4" />
                   Import Businesses
@@ -331,8 +331,8 @@ export default function NewCampaignPage() {
                         onClick={() => toggleTag(tag.id)}
                         className={`group relative flex items-center justify-between p-4 rounded-xl border-2 transition-all duration-200 text-left ${
                           isSelected
-                            ? 'border-indigo-500 bg-gradient-to-br from-indigo-50 to-purple-50 shadow-lg shadow-indigo-500/20 scale-[1.02]'
-                            : 'border-gray-200 hover:border-gray-300 bg-white hover:shadow-md hover:scale-[1.01]'
+                            ? 'border-clay-600 bg-clay-50 shadow-md scale-[1.02]'
+                            : 'border-clay-200 hover:border-clay-300 bg-white hover:shadow-md hover:scale-[1.01]'
                         }`}
                       >
                         <div className="flex items-center gap-3 flex-1">
@@ -342,19 +342,19 @@ export default function NewCampaignPage() {
                             }`}
                             style={{ backgroundColor: isSelected ? tag.color : `${tag.color}30` }}
                           >
-                            <Tag className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-gray-600'}`} />
+                            <Tag className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-clay-600'}`} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className={`font-semibold text-sm mb-0.5 ${isSelected ? 'text-indigo-900' : 'text-gray-900'}`}>
+                            <div className={`font-semibold text-sm mb-0.5 ${isSelected ? 'text-clay-900' : 'text-clay-800'}`}>
                               {tag.name}
                             </div>
-                            <div className={`text-xs ${isSelected ? 'text-indigo-600' : 'text-gray-500'}`}>
+                            <div className={`text-xs ${isSelected ? 'text-clay-600' : 'text-clay-500'}`}>
                               {tag.business_count} business{tag.business_count !== 1 ? 'es' : ''}
                             </div>
                           </div>
                         </div>
                         {isSelected && (
-                          <div className="absolute top-2 right-2 w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center animate-in zoom-in duration-200">
+                          <div className="absolute top-2 right-2 w-6 h-6 bg-clay-700 rounded-full flex items-center justify-center animate-in zoom-in duration-200">
                             <Check className="w-4 h-4 text-white" />
                           </div>
                         )}
@@ -363,28 +363,28 @@ export default function NewCampaignPage() {
                   })}
                 </div>
 
-                {/* Selected Count Display with Animation */}
+                {/* Selected Count Display */}
                 <div className={`relative overflow-hidden rounded-xl transition-all duration-300 ${
                   selectedBusinesses.length > 0
-                    ? 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-6'
-                    : 'bg-gray-100 p-6'
+                    ? 'bg-clay-800 p-6'
+                    : 'bg-clay-100 p-6'
                 }`}>
                   {selectedBusinesses.length > 0 && (
                     <>
-                      <div className="absolute inset-0 bg-black/10" />
-                      <div className="absolute -top-16 -right-16 w-48 h-48 bg-white/10 rounded-full blur-3xl" />
-                      <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl" />
+                      <div className="absolute inset-0 bg-gradient-to-br from-clay-900/30 to-clay-700/20" />
+                      <div className="absolute -top-16 -right-16 w-48 h-48 bg-clay-600/20 rounded-full blur-3xl" />
+                      <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-clay-500/10 rounded-full blur-3xl" />
                     </>
                   )}
 
                   <div className="relative z-10 text-center">
                     <div className={`text-5xl font-bold mb-2 transition-all duration-300 ${
-                      selectedBusinesses.length > 0 ? 'text-white' : 'text-gray-400'
+                      selectedBusinesses.length > 0 ? 'text-white' : 'text-clay-400'
                     }`}>
                       {selectedBusinesses.length}
                     </div>
                     <div className={`text-sm font-medium mb-4 ${
-                      selectedBusinesses.length > 0 ? 'text-white/90' : 'text-gray-500'
+                      selectedBusinesses.length > 0 ? 'text-white/90' : 'text-clay-500'
                     }`}>
                       unique business{selectedBusinesses.length !== 1 ? 'es' : ''} will receive messages
                     </div>
@@ -425,23 +425,23 @@ export default function NewCampaignPage() {
         </div>
 
         {/* AI Instructions */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-gray-50 to-gray-100/50 px-6 py-4 border-b border-gray-200">
+        <div className="bg-white rounded-xl border border-clay-200 shadow-sm overflow-hidden">
+          <div className="bg-clay-50 px-6 py-4 border-b border-clay-200">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-clay-600 rounded-lg flex items-center justify-center">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">AI Instructions</h2>
-                <p className="text-xs text-gray-500">Guide Claude on how to personalize messages</p>
+                <h2 className="text-lg font-semibold text-clay-900">AI Instructions</h2>
+                <p className="text-xs text-clay-500">Guide Claude on how to personalize messages</p>
               </div>
             </div>
           </div>
 
           <div className="p-6 space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Instructions for Claude <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-clay-700 mb-2">
+                Instructions for Claude <span className="text-status-red-text">*</span>
               </label>
               <div className="relative">
                 <textarea
@@ -451,23 +451,23 @@ export default function NewCampaignPage() {
                   placeholder="e.g., Focus on building trust quickly. Mention that we've helped similar restaurants in their area. Keep the tone friendly but professional. Emphasize quick wins and ROI."
                   rows={5}
                   maxLength={1000}
-                  className={`w-full px-4 py-3 border rounded-xl text-sm transition-all duration-200 resize-none ${
+                  className={`w-full px-4 py-3 border rounded-lg text-sm transition-all duration-200 resize-none ${
                     touched.instructions && !instructions.trim()
-                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20 bg-red-50'
-                      : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500/20 bg-white'
-                  } focus:outline-none focus:ring-4`}
+                      ? 'border-status-red-dot focus:border-status-red-dot focus:ring-status-red-bg bg-status-red-bg/20'
+                      : 'border-clay-300 focus:border-clay-500 focus:ring-clay-200 bg-white'
+                  } focus:outline-none focus:ring-2`}
                 />
-                <div className="absolute bottom-3 right-3 text-xs text-gray-400">
+                <div className="absolute bottom-3 right-3 text-xs text-clay-400">
                   {instructions.length}/1000
                 </div>
               </div>
               {touched.instructions && !instructions.trim() ? (
-                <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1">
+                <p className="mt-1.5 text-xs text-status-red-text flex items-center gap-1">
                   <Info className="w-3 h-3" />
                   AI instructions are required
                 </p>
               ) : (
-                <p className="mt-1.5 text-xs text-gray-500 flex items-center gap-1.5">
+                <p className="mt-1.5 text-xs text-clay-500 flex items-center gap-1.5">
                   <Sparkles className="w-3 h-3" />
                   These instructions guide how Claude personalizes each message for maximum engagement
                 </p>
@@ -475,14 +475,14 @@ export default function NewCampaignPage() {
             </div>
 
             {/* Tips Box */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
+            <div className="bg-clay-50 border border-clay-200 rounded-xl p-4">
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 bg-clay-600 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Info className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-blue-900 mb-1">Pro Tips</h3>
-                  <ul className="text-xs text-blue-700 space-y-1">
+                  <h3 className="text-sm font-semibold text-clay-900 mb-1">Pro Tips</h3>
+                  <ul className="text-xs text-clay-600 space-y-1">
                     <li>• Be specific about tone and style (formal, friendly, concise)</li>
                     <li>• Mention key benefits or value propositions to highlight</li>
                     <li>• Include any industry-specific knowledge to reference</li>
@@ -493,17 +493,17 @@ export default function NewCampaignPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Message Template <span className="text-gray-400 text-xs font-normal">(optional)</span>
+              <label className="block text-sm font-medium text-clay-700 mb-2">
+                Message Template <span className="text-clay-400 text-xs font-normal">(optional)</span>
               </label>
               <textarea
                 value={template}
                 onChange={(e) => setTemplate(e.target.value)}
                 placeholder="Provide a template structure if you want messages to follow a specific format. Leave blank to let Claude create freely based on instructions."
                 rows={4}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 resize-none"
+                className="w-full px-4 py-3 border border-clay-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-clay-200 focus:border-clay-500 transition-all duration-200 resize-none"
               />
-              <p className="mt-1.5 text-xs text-gray-500">
+              <p className="mt-1.5 text-xs text-clay-500">
                 Optional: Provide a structure for Claude to follow while still personalizing content
               </p>
             </div>
@@ -511,10 +511,10 @@ export default function NewCampaignPage() {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-between p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
+        <div className="flex items-center justify-between p-6 bg-white rounded-xl border border-clay-200 shadow-sm">
           <Link
             href="/campaigns"
-            className="flex items-center gap-2 px-4 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 text-sm font-medium"
+            className="flex items-center gap-2 px-4 py-2.5 text-clay-700 bg-white border border-clay-300 rounded-lg hover:bg-clay-50 transition-all duration-200 text-sm font-medium"
           >
             <ArrowLeft className="w-4 h-4" />
             Cancel
@@ -524,8 +524,8 @@ export default function NewCampaignPage() {
             disabled={!isFormValid || loading}
             className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
               !isFormValid || loading
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white hover:shadow-lg hover:shadow-indigo-500/30 hover:scale-[1.02]'
+                ? 'bg-clay-100 text-clay-400 cursor-not-allowed'
+                : 'bg-clay-800 text-white hover:bg-clay-700 hover:shadow-lg'
             }`}
           >
             {loading ? (

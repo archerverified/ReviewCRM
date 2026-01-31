@@ -21,11 +21,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-[#F8F9FB] text-gray-900 antialiased`}>
+      <body className={`${inter.className} bg-clay-100 text-clay-900 antialiased`}>
         <Sidebar />
 
-        <main className="ml-64 min-h-screen">
-          <div className="p-8">
+        <main className="ml-60 min-h-screen">
+          <div className="p-8 max-w-[1400px] mx-auto">
             {children}
           </div>
         </main>

@@ -3,28 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Business, Campaign, PIPELINE_STAGES } from '@/types'
-import {
-  BarChart3,
-  DollarSign,
-  TrendingUp,
-  Target,
-  Mail,
-  CheckCircle,
-  AlertCircle,
-  XCircle,
-  HelpCircle,
-  Users,
-  Briefcase,
-  ArrowUp,
-  ArrowDown,
-  Activity,
-  Star,
-  Send,
-  MessageSquare,
-  FileText,
-  CheckSquare,
-  Package,
-} from 'lucide-react'
+import { StatCard, Badge } from '@/components/ui'
 
 interface MetricCard {
   label: string
@@ -71,7 +50,6 @@ export default function MetricsPage() {
 
   // Campaign stats
   const totalCampaigns = campaigns.length
-  const totalEmails = campaigns.reduce((sum, c) => sum + c.emails_sent, 0)
 
   // Email verification status breakdown (Brainzey)
   const emailGood = businesses.filter((b) => b.email_verification_status === 'good').length
@@ -117,375 +95,328 @@ export default function MetricsPage() {
     },
   ]
 
-  const metricIcons = [DollarSign, TrendingUp, Target, Star]
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-        {/* Header Skeleton */}
-        <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 p-8 shadow-lg">
-          <div className="max-w-7xl mx-auto">
-            <div className="h-8 w-48 bg-white/20 rounded-lg animate-pulse mb-2"></div>
-            <div className="h-4 w-96 bg-white/20 rounded-lg animate-pulse"></div>
-          </div>
-        </div>
-
-        {/* Content Skeleton */}
-        <div className="max-w-7xl mx-auto p-6 space-y-6">
-          <div className="grid grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="clay-card h-32 animate-pulse bg-gray-100"></div>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 gap-6">
-            {[1, 2].map((i) => (
-              <div key={i} className="clay-card h-96 animate-pulse bg-gray-100"></div>
-            ))}
-          </div>
-        </div>
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-clay-600"></div>
       </div>
     )
   }
 
-  // Pipeline stages with icons
+  // Pipeline stages with colors
   const pipelineStages = [
-    { label: 'Lead Scraped', count: leadScraped, color: 'from-gray-400 to-gray-500', icon: Users },
-    { label: 'Email Verified', count: emailVerified, color: 'from-blue-400 to-blue-500', icon: Mail },
-    { label: 'Campaign Ready', count: campaignReady, color: 'from-cyan-400 to-cyan-500', icon: CheckSquare },
-    { label: 'Outreach Sent', count: outreachSent, color: 'from-indigo-400 to-indigo-500', icon: Send },
-    { label: 'Positive Reply', count: positiveReply, color: 'from-green-400 to-green-500', icon: MessageSquare },
-    { label: 'Proposal Sent', count: proposalSent, color: 'from-yellow-400 to-yellow-500', icon: FileText },
-    { label: 'Deals Closed', count: dealsClosed, color: 'from-emerald-500 to-emerald-600', icon: CheckCircle },
-    { label: 'In Delivery', count: inDelivery, color: 'from-purple-400 to-purple-500', icon: Package },
+    { label: 'Lead Scraped', count: leadScraped, color: 'bg-clay-300' },
+    { label: 'Email Verified', count: emailVerified, color: 'bg-clay-400' },
+    { label: 'Campaign Ready', count: campaignReady, color: 'bg-clay-500' },
+    { label: 'Outreach Sent', count: outreachSent, color: 'bg-clay-600' },
+    { label: 'Positive Reply', count: positiveReply, color: 'bg-status-green-dot' },
+    { label: 'Proposal Sent', count: proposalSent, color: 'bg-status-yellow-dot' },
+    { label: 'Deals Closed', count: dealsClosed, color: 'bg-status-green-text' },
+    { label: 'In Delivery', count: inDelivery, color: 'bg-clay-700' },
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-      {/* Enhanced Header */}
-      <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 p-8 shadow-lg">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-              <BarChart3 className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold text-white">Metrics & Analytics</h1>
-          </div>
-          <p className="text-purple-100 text-sm ml-14">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-clay-900">Metrics & Analytics</h1>
+          <p className="text-[13px] text-clay-500 mt-0.5">
             Real-time performance insights for your review removal business
           </p>
-
-          {/* Quick Summary */}
-          <div className="mt-6 grid grid-cols-4 gap-4">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-              <div className="text-purple-100 text-xs font-medium mb-1">Pipeline Value</div>
-              <div className="text-white text-xl font-bold">${(totalPipelineValue / 1000).toFixed(0)}K</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-              <div className="text-purple-100 text-xs font-medium mb-1">Active Leads</div>
-              <div className="text-white text-xl font-bold">{totalBusinesses}</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-              <div className="text-purple-100 text-xs font-medium mb-1">Closed Deals</div>
-              <div className="text-white text-xl font-bold">{dealsClosed}</div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-              <div className="text-purple-100 text-xs font-medium mb-1">Campaigns</div>
-              <div className="text-white text-xl font-bold">{totalCampaigns}</div>
-            </div>
-          </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
-        {/* Primary Metrics - Enhanced Cards */}
-        <div className="grid grid-cols-4 gap-6">
-          {primaryMetrics.map((metric, index) => {
-            const Icon = metricIcons[index]
-            return (
-              <div
-                key={metric.label}
-                className="clay-card relative overflow-hidden group hover:shadow-xl transition-all duration-300 hover:scale-105"
-              >
-                {/* Gradient Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-pink-50 to-fuchsia-50 opacity-50 group-hover:opacity-70 transition-opacity"></div>
+      {/* Quick Summary Cards */}
+      <div className="grid grid-cols-4 gap-4">
+        <div className="bg-clay-50 rounded-lg p-4 border border-clay-200">
+          <div className="text-[11px] font-medium text-clay-500 uppercase tracking-wide mb-1">Pipeline Value</div>
+          <div className="text-2xl font-semibold text-clay-900">${(totalPipelineValue / 1000).toFixed(0)}K</div>
+        </div>
+        <div className="bg-clay-50 rounded-lg p-4 border border-clay-200">
+          <div className="text-[11px] font-medium text-clay-500 uppercase tracking-wide mb-1">Active Leads</div>
+          <div className="text-2xl font-semibold text-clay-900">{totalBusinesses}</div>
+        </div>
+        <div className="bg-clay-50 rounded-lg p-4 border border-clay-200">
+          <div className="text-[11px] font-medium text-clay-500 uppercase tracking-wide mb-1">Closed Deals</div>
+          <div className="text-2xl font-semibold text-clay-900">{dealsClosed}</div>
+        </div>
+        <div className="bg-clay-50 rounded-lg p-4 border border-clay-200">
+          <div className="text-[11px] font-medium text-clay-500 uppercase tracking-wide mb-1">Campaigns</div>
+          <div className="text-2xl font-semibold text-clay-900">{totalCampaigns}</div>
+        </div>
+      </div>
 
-                <div className="relative z-10 p-6">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="p-2 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-lg shadow-lg">
-                      <Icon className="w-5 h-5 text-white" />
-                    </div>
-                    {metric.trend && (
-                      <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                        metric.trend === 'up' ? 'bg-green-100 text-green-700' :
-                        metric.trend === 'down' ? 'bg-red-100 text-red-700' :
-                        'bg-gray-100 text-gray-700'
-                      }`}>
-                        {metric.trend === 'up' && <ArrowUp className="w-3 h-3" />}
-                        {metric.trend === 'down' && <ArrowDown className="w-3 h-3" />}
-                        {metric.trend === 'up' ? '+12%' : metric.trend === 'down' ? '-5%' : '0%'}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="text-sm text-gray-600 mb-1 font-medium">{metric.label}</div>
-                  <div className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
-                    {metric.value}
-                  </div>
-                  {metric.subValue && (
-                    <div className="text-xs text-gray-500 mt-2">{metric.subValue}</div>
+      {/* Primary Metrics */}
+      <div className="grid grid-cols-4 gap-4">
+        {primaryMetrics.map((metric) => (
+          <div
+            key={metric.label}
+            className="bg-white rounded-lg border border-clay-200 p-5 hover:border-clay-300 transition-colors"
+          >
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-8 h-8 rounded-lg bg-clay-100 flex items-center justify-center">
+                <svg className="w-4 h-4 text-clay-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              {metric.trend && (
+                <div className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                  metric.trend === 'up' ? 'bg-status-green-bg text-status-green-text' :
+                  metric.trend === 'down' ? 'bg-status-red-bg text-status-red-text' :
+                  'bg-clay-100 text-clay-500'
+                }`}>
+                  {metric.trend === 'up' && (
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
                   )}
+                  {metric.trend === 'down' && (
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  )}
+                  {metric.trend === 'up' ? '+12%' : metric.trend === 'down' ? '-5%' : '0%'}
                 </div>
-              </div>
-            )
-          })}
-        </div>
-
-        {/* Pipeline Funnel & Email Quality */}
-        <div className="grid grid-cols-2 gap-6">
-          {/* Pipeline Funnel - Enhanced */}
-          <div className="clay-card">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg">
-                <Activity className="w-5 h-5 text-white" />
-              </div>
-              <h2 className="text-xl font-bold text-gray-900">Pipeline Funnel</h2>
+              )}
             </div>
 
-            <div className="space-y-4">
-              {pipelineStages.map((stage) => {
-                const percentage = totalBusinesses > 0 ? (stage.count / totalBusinesses) * 100 : 0
-                const StageIcon = stage.icon
-
-                return (
-                  <div key={stage.label} className="group">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <StageIcon className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm font-medium text-gray-700">{stage.label}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500">{percentage.toFixed(1)}%</span>
-                        <span className="text-sm font-bold text-gray-900 min-w-[2rem] text-right">
-                          {stage.count}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="h-3 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                      <div
-                        className={`h-full bg-gradient-to-r ${stage.color} rounded-full transition-all duration-1000 ease-out shadow-sm`}
-                        style={{
-                          width: `${percentage}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                )
-              })}
+            <div className="text-[12px] text-clay-500 mb-1">{metric.label}</div>
+            <div className="text-2xl font-semibold text-clay-900">
+              {metric.value}
             </div>
+            {metric.subValue && (
+              <div className="text-[11px] text-clay-400 mt-1">{metric.subValue}</div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Pipeline Funnel & Email Quality */}
+      <div className="grid grid-cols-2 gap-6">
+        {/* Pipeline Funnel */}
+        <div className="bg-white rounded-lg border border-clay-200 p-5">
+          <div className="flex items-center gap-2 mb-5">
+            <div className="w-6 h-6 rounded bg-clay-100 flex items-center justify-center">
+              <svg className="w-3.5 h-3.5 text-clay-500" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+              </svg>
+            </div>
+            <h2 className="text-[15px] font-semibold text-clay-900">Pipeline Funnel</h2>
           </div>
 
-          {/* Email Quality - Enhanced */}
-          <div className="clay-card">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg">
-                <Mail className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">Email Quality</h2>
-                <p className="text-xs text-gray-500">Brainzey Verification Status</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              {/* Good */}
-              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105">
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-2">
-                    <CheckCircle className="w-6 h-6 text-white/90" />
-                    <div className="text-xs font-semibold text-white/80 bg-white/20 px-2 py-1 rounded-full">
-                      {totalBusinesses > 0 ? ((emailGood / totalBusinesses) * 100).toFixed(0) : 0}%
-                    </div>
-                  </div>
-                  <div className="text-4xl font-bold text-white mb-1">{emailGood}</div>
-                  <div className="text-sm font-medium text-green-100">Good</div>
-                </div>
-                <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
-              </div>
-
-              {/* Risky */}
-              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105">
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-2">
-                    <AlertCircle className="w-6 h-6 text-white/90" />
-                    <div className="text-xs font-semibold text-white/80 bg-white/20 px-2 py-1 rounded-full">
-                      {totalBusinesses > 0 ? ((emailRisky / totalBusinesses) * 100).toFixed(0) : 0}%
-                    </div>
-                  </div>
-                  <div className="text-4xl font-bold text-white mb-1">{emailRisky}</div>
-                  <div className="text-sm font-medium text-yellow-100">Risky</div>
-                </div>
-                <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
-              </div>
-
-              {/* Bad */}
-              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-red-500 to-rose-600 p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105">
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-2">
-                    <XCircle className="w-6 h-6 text-white/90" />
-                    <div className="text-xs font-semibold text-white/80 bg-white/20 px-2 py-1 rounded-full">
-                      {totalBusinesses > 0 ? ((emailBad / totalBusinesses) * 100).toFixed(0) : 0}%
-                    </div>
-                  </div>
-                  <div className="text-4xl font-bold text-white mb-1">{emailBad}</div>
-                  <div className="text-sm font-medium text-red-100">Bad</div>
-                </div>
-                <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
-              </div>
-
-              {/* Unverified */}
-              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-500 to-slate-600 p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105">
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-2">
-                    <HelpCircle className="w-6 h-6 text-white/90" />
-                    <div className="text-xs font-semibold text-white/80 bg-white/20 px-2 py-1 rounded-full">
-                      {totalBusinesses > 0 ? ((emailUnverified / totalBusinesses) * 100).toFixed(0) : 0}%
-                    </div>
-                  </div>
-                  <div className="text-4xl font-bold text-white mb-1">{emailUnverified}</div>
-                  <div className="text-sm font-medium text-gray-100">Unverified</div>
-                </div>
-                <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Pricing Tiers - Enhanced */}
-        <div className="clay-card">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg">
-              <Briefcase className="w-5 h-5 text-white" />
-            </div>
-            <h2 className="text-xl font-bold text-gray-900">Pricing Tier Distribution</h2>
-          </div>
-
-          <div className="grid grid-cols-3 gap-6">
-            {/* Standard */}
-            <div className="relative overflow-hidden rounded-xl border-2 border-gray-200 bg-gradient-to-br from-white to-gray-50 p-6 hover:shadow-lg transition-all hover:scale-105">
-              <div className="absolute top-3 right-3">
-                <DollarSign className="w-8 h-8 text-gray-300" />
-              </div>
-              <div className="relative z-10">
-                <div className="text-sm font-medium text-gray-500 mb-2">Standard</div>
-                <div className="text-5xl font-bold text-gray-900 mb-3">{tierStandard}</div>
-                <div className="text-xs text-gray-600 font-medium mb-1">$125 per review</div>
-                <div className="text-xs text-gray-500">1-24 reviews</div>
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="text-xs text-gray-500">Total Value</div>
-                  <div className="text-lg font-bold text-gray-900">
-                    ${(tierStandard * 125 * 10).toLocaleString()}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Volume - Most Popular */}
-            <div className="relative overflow-hidden rounded-xl border-2 border-blue-400 bg-gradient-to-br from-blue-50 to-cyan-50 p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105">
-              <div className="absolute -top-1 -right-1">
-                <div className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg shadow-md">
-                  POPULAR
-                </div>
-              </div>
-              <div className="absolute bottom-3 right-3">
-                <DollarSign className="w-8 h-8 text-blue-200" />
-              </div>
-              <div className="relative z-10">
-                <div className="text-sm font-medium text-blue-700 mb-2">Volume</div>
-                <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-3">
-                  {tierVolume}
-                </div>
-                <div className="text-xs text-blue-700 font-medium mb-1">$110 per review</div>
-                <div className="text-xs text-blue-600">25-49 reviews</div>
-                <div className="mt-4 pt-4 border-t border-blue-200">
-                  <div className="text-xs text-blue-600">Total Value</div>
-                  <div className="text-lg font-bold text-blue-700">
-                    ${(tierVolume * 110 * 30).toLocaleString()}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Enterprise */}
-            <div className="relative overflow-hidden rounded-xl border-2 border-purple-400 bg-gradient-to-br from-purple-50 to-fuchsia-50 p-6 hover:shadow-lg transition-all hover:scale-105">
-              <div className="absolute top-3 right-3">
-                <Star className="w-8 h-8 text-purple-200" />
-              </div>
-              <div className="relative z-10">
-                <div className="text-sm font-medium text-purple-700 mb-2">Enterprise</div>
-                <div className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-fuchsia-600 bg-clip-text text-transparent mb-3">
-                  {tierEnterprise}
-                </div>
-                <div className="text-xs text-purple-700 font-medium mb-1">$90 per review</div>
-                <div className="text-xs text-purple-600">50+ reviews</div>
-                <div className="mt-4 pt-4 border-t border-purple-200">
-                  <div className="text-xs text-purple-600">Total Value</div>
-                  <div className="text-lg font-bold text-purple-700">
-                    ${(tierEnterprise * 90 * 75).toLocaleString()}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Stage Breakdown - Enhanced Grid */}
-        <div className="clay-card">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg">
-              <Target className="w-5 h-5 text-white" />
-            </div>
-            <h2 className="text-xl font-bold text-gray-900">All Pipeline Stages</h2>
-          </div>
-
-          <div className="grid grid-cols-4 gap-4">
-            {PIPELINE_STAGES.map((stage, index) => {
-              const count = businesses.filter((b) => b.pipeline_stage === stage.id).length
-              const value = businesses
-                .filter((b) => b.pipeline_stage === stage.id)
-                .reduce((sum, b) => sum + b.total_project_value, 0)
-
-              // Color scheme based on position in pipeline
-              const colors = [
-                'from-gray-100 to-gray-200 border-gray-300 text-gray-700',
-                'from-blue-100 to-blue-200 border-blue-300 text-blue-700',
-                'from-cyan-100 to-cyan-200 border-cyan-300 text-cyan-700',
-                'from-indigo-100 to-indigo-200 border-indigo-300 text-indigo-700',
-                'from-green-100 to-green-200 border-green-300 text-green-700',
-                'from-yellow-100 to-yellow-200 border-yellow-300 text-yellow-700',
-                'from-emerald-100 to-emerald-200 border-emerald-300 text-emerald-700',
-                'from-purple-100 to-purple-200 border-purple-300 text-purple-700',
-              ]
+          <div className="space-y-3">
+            {pipelineStages.map((stage) => {
+              const percentage = totalBusinesses > 0 ? (stage.count / totalBusinesses) * 100 : 0
 
               return (
-                <div
-                  key={stage.id}
-                  className={`bg-gradient-to-br ${colors[index % colors.length]} rounded-xl p-4 border-2 hover:shadow-lg transition-all hover:scale-105 cursor-pointer`}
-                >
-                  <div className="text-center">
-                    <div className="text-3xl font-bold mb-1">{count}</div>
-                    <div className="text-xs font-medium truncate px-1" title={stage.name}>
-                      {stage.name}
+                <div key={stage.label}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[12px] font-medium text-clay-700">{stage.label}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-clay-400">{percentage.toFixed(0)}%</span>
+                      <span className="text-[12px] font-semibold text-clay-900 min-w-[1.5rem] text-right">
+                        {stage.count}
+                      </span>
                     </div>
-                    <div className="mt-2 pt-2 border-t border-current opacity-30">
-                      <div className="text-xs font-semibold">
-                        ${(value / 1000).toFixed(1)}K
-                      </div>
-                    </div>
+                  </div>
+                  <div className="h-2 bg-clay-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full ${stage.color} rounded-full transition-all duration-500`}
+                      style={{ width: `${percentage}%` }}
+                    />
                   </div>
                 </div>
               )
             })}
           </div>
+        </div>
+
+        {/* Email Quality */}
+        <div className="bg-white rounded-lg border border-clay-200 p-5">
+          <div className="flex items-center gap-2 mb-5">
+            <div className="w-6 h-6 rounded bg-clay-100 flex items-center justify-center">
+              <svg className="w-3.5 h-3.5 text-clay-500" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-[15px] font-semibold text-clay-900">Email Quality</h2>
+              <p className="text-[11px] text-clay-400">Brainzey Verification Status</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {/* Good */}
+            <div className="rounded-lg bg-status-green-bg border border-status-green-dot/20 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <svg className="w-5 h-5 text-status-green-text" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span className="text-[10px] font-medium text-status-green-text bg-white/50 px-1.5 py-0.5 rounded">
+                  {totalBusinesses > 0 ? ((emailGood / totalBusinesses) * 100).toFixed(0) : 0}%
+                </span>
+              </div>
+              <div className="text-2xl font-bold text-status-green-text mb-0.5">{emailGood}</div>
+              <div className="text-[11px] font-medium text-status-green-text/80">Good</div>
+            </div>
+
+            {/* Risky */}
+            <div className="rounded-lg bg-status-yellow-bg border border-status-yellow-dot/20 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <svg className="w-5 h-5 text-status-yellow-text" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <span className="text-[10px] font-medium text-status-yellow-text bg-white/50 px-1.5 py-0.5 rounded">
+                  {totalBusinesses > 0 ? ((emailRisky / totalBusinesses) * 100).toFixed(0) : 0}%
+                </span>
+              </div>
+              <div className="text-2xl font-bold text-status-yellow-text mb-0.5">{emailRisky}</div>
+              <div className="text-[11px] font-medium text-status-yellow-text/80">Risky</div>
+            </div>
+
+            {/* Bad */}
+            <div className="rounded-lg bg-status-red-bg border border-status-red-dot/20 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <svg className="w-5 h-5 text-status-red-text" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <span className="text-[10px] font-medium text-status-red-text bg-white/50 px-1.5 py-0.5 rounded">
+                  {totalBusinesses > 0 ? ((emailBad / totalBusinesses) * 100).toFixed(0) : 0}%
+                </span>
+              </div>
+              <div className="text-2xl font-bold text-status-red-text mb-0.5">{emailBad}</div>
+              <div className="text-[11px] font-medium text-status-red-text/80">Bad</div>
+            </div>
+
+            {/* Unverified */}
+            <div className="rounded-lg bg-clay-100 border border-clay-200 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <svg className="w-5 h-5 text-clay-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                </svg>
+                <span className="text-[10px] font-medium text-clay-600 bg-white/50 px-1.5 py-0.5 rounded">
+                  {totalBusinesses > 0 ? ((emailUnverified / totalBusinesses) * 100).toFixed(0) : 0}%
+                </span>
+              </div>
+              <div className="text-2xl font-bold text-clay-700 mb-0.5">{emailUnverified}</div>
+              <div className="text-[11px] font-medium text-clay-500">Unverified</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Pricing Tiers */}
+      <div className="bg-white rounded-lg border border-clay-200 p-5">
+        <div className="flex items-center gap-2 mb-5">
+          <div className="w-6 h-6 rounded bg-clay-100 flex items-center justify-center">
+            <svg className="w-3.5 h-3.5 text-clay-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <h2 className="text-[15px] font-semibold text-clay-900">Pricing Tier Distribution</h2>
+        </div>
+
+        <div className="grid grid-cols-3 gap-4">
+          {/* Standard */}
+          <div className="rounded-lg border border-clay-200 bg-clay-50 p-5 hover:border-clay-300 transition-colors">
+            <div className="text-[12px] font-medium text-clay-500 mb-2">Standard</div>
+            <div className="text-4xl font-bold text-clay-900 mb-2">{tierStandard}</div>
+            <div className="text-[11px] text-clay-600 font-medium mb-0.5">$125 per review</div>
+            <div className="text-[10px] text-clay-400">1-24 reviews</div>
+            <div className="mt-3 pt-3 border-t border-clay-200">
+              <div className="text-[10px] text-clay-400">Est. Value</div>
+              <div className="text-[14px] font-semibold text-clay-700">
+                ${(tierStandard * 125 * 10).toLocaleString()}
+              </div>
+            </div>
+          </div>
+
+          {/* Volume */}
+          <div className="rounded-lg border-2 border-clay-400 bg-white p-5 relative">
+            <div className="absolute -top-2 right-3">
+              <span className="px-2 py-0.5 bg-clay-800 text-white text-[9px] font-semibold rounded uppercase tracking-wide">
+                Popular
+              </span>
+            </div>
+            <div className="text-[12px] font-medium text-clay-600 mb-2">Volume</div>
+            <div className="text-4xl font-bold text-clay-900 mb-2">{tierVolume}</div>
+            <div className="text-[11px] text-clay-600 font-medium mb-0.5">$110 per review</div>
+            <div className="text-[10px] text-clay-400">25-49 reviews</div>
+            <div className="mt-3 pt-3 border-t border-clay-200">
+              <div className="text-[10px] text-clay-400">Est. Value</div>
+              <div className="text-[14px] font-semibold text-clay-800">
+                ${(tierVolume * 110 * 30).toLocaleString()}
+              </div>
+            </div>
+          </div>
+
+          {/* Enterprise */}
+          <div className="rounded-lg border border-clay-200 bg-clay-50 p-5 hover:border-clay-300 transition-colors">
+            <div className="text-[12px] font-medium text-clay-500 mb-2">Enterprise</div>
+            <div className="text-4xl font-bold text-clay-900 mb-2">{tierEnterprise}</div>
+            <div className="text-[11px] text-clay-600 font-medium mb-0.5">$90 per review</div>
+            <div className="text-[10px] text-clay-400">50+ reviews</div>
+            <div className="mt-3 pt-3 border-t border-clay-200">
+              <div className="text-[10px] text-clay-400">Est. Value</div>
+              <div className="text-[14px] font-semibold text-clay-700">
+                ${(tierEnterprise * 90 * 75).toLocaleString()}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Stage Breakdown Grid */}
+      <div className="bg-white rounded-lg border border-clay-200 p-5">
+        <div className="flex items-center gap-2 mb-5">
+          <div className="w-6 h-6 rounded bg-clay-100 flex items-center justify-center">
+            <svg className="w-3.5 h-3.5 text-clay-500" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+          </div>
+          <h2 className="text-[15px] font-semibold text-clay-900">All Pipeline Stages</h2>
+        </div>
+
+        <div className="grid grid-cols-4 gap-3">
+          {PIPELINE_STAGES.map((stage, index) => {
+            const count = businesses.filter((b) => b.pipeline_stage === stage.id).length
+            const value = businesses
+              .filter((b) => b.pipeline_stage === stage.id)
+              .reduce((sum, b) => sum + b.total_project_value, 0)
+
+            // Grayscale intensity based on position
+            const bgColors = [
+              'bg-clay-50',
+              'bg-clay-100',
+              'bg-clay-50',
+              'bg-clay-100',
+              'bg-clay-50',
+              'bg-clay-100',
+              'bg-clay-50',
+              'bg-clay-100',
+            ]
+
+            return (
+              <div
+                key={stage.id}
+                className={`${bgColors[index % bgColors.length]} rounded-lg p-4 border border-clay-200 hover:border-clay-300 transition-colors cursor-pointer`}
+              >
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-clay-900 mb-1">{count}</div>
+                  <div className="text-[11px] font-medium text-clay-600 truncate" title={stage.name}>
+                    {stage.name}
+                  </div>
+                  <div className="mt-2 pt-2 border-t border-clay-200">
+                    <div className="text-[12px] font-semibold text-clay-500">
+                      ${(value / 1000).toFixed(1)}K
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>

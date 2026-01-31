@@ -121,14 +121,13 @@ export function Modal({ isOpen, onClose, title, children, footer, size = 'md', m
             sizeStyles[size]
           )}
         >
-          {/* Header with gradient accent */}
-          <div className="relative flex items-center justify-between px-6 py-5 border-b border-gray-100">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-t-2xl" />
-            <h2 id={titleId} className="text-xl font-semibold text-gray-900">{title}</h2>
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-5 border-b border-clay-200">
+            <h2 id={titleId} className="text-lg font-semibold text-clay-900">{title}</h2>
             <button
               onClick={onClose}
               aria-label="Close"
-              className="p-2 -mr-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
+              className="p-1 text-clay-400 hover:text-clay-600 cursor-pointer text-xl transition-colors"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -146,7 +145,7 @@ export function Modal({ isOpen, onClose, title, children, footer, size = 'md', m
 
           {/* Footer */}
           {footer && (
-            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl flex justify-end gap-3">
+            <div className="px-6 py-5 border-t border-clay-200 flex justify-end gap-3">
               {footer}
             </div>
           )}

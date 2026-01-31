@@ -21,7 +21,6 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import {
-  Layers,
   DollarSign,
   Building2,
   MapPin,
@@ -29,17 +28,16 @@ import {
   GripVertical,
   Plus,
   ChevronDown,
-  Users,
-  TrendingUp,
   Settings,
   Check,
   Loader2,
   Trash2,
-  GripHorizontal,
+  MoreHorizontal,
 } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { StatCard, Badge, Avatar, ViewToggle } from '@/components/ui'
 import { toast } from 'sonner'
 
 interface CustomStage {
@@ -57,12 +55,25 @@ interface Pipeline {
   is_default: boolean
 }
 
+// Get stage color classes
+function getStageColors(color: string) {
+  const colorMap: Record<string, { dot: string; bg: string }> = {
+    gray: { dot: 'bg-status-gray-dot', bg: 'bg-clay-50' },
+    blue: { dot: 'bg-status-blue-dot', bg: 'bg-blue-50' },
+    yellow: { dot: 'bg-status-yellow-dot', bg: 'bg-amber-50' },
+    green: { dot: 'bg-status-green-dot', bg: 'bg-green-50' },
+    purple: { dot: 'bg-status-purple-dot', bg: 'bg-purple-50' },
+    red: { dot: 'bg-status-red-dot', bg: 'bg-red-50' },
+    indigo: { dot: 'bg-indigo-500', bg: 'bg-indigo-50' },
+  }
+  return colorMap[color] || colorMap.gray
+}
+
 // Sortable Stage Column Component
 function SortableStageColumn({
   stage,
   businesses,
   stageValue,
-  colors,
   onBusinessStageChange,
   onEditStage,
   allStages,
@@ -70,7 +81,6 @@ function SortableStageColumn({
   stage: CustomStage
   businesses: Business[]
   stageValue: number
-  colors: { bg: string; border: string; dot: string; gradient: string }
   onBusinessStageChange: (businessId: string, newStage: PipelineStage, oldStage: string) => void
   onEditStage: (stage: CustomStage) => void
   allStages: CustomStage[]
@@ -90,56 +100,44 @@ function SortableStageColumn({
     opacity: isDragging ? 0.5 : 1,
   }
 
+  const colors = getStageColors(stage.color)
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`w-80 flex-shrink-0 rounded-xl border-2 ${colors.border} ${colors.bg} shadow-lg hover:shadow-xl transition-all duration-200`}
+      className={`w-72 flex-shrink-0 rounded-lg overflow-hidden ${colors.bg}`}
     >
       {/* Column Header */}
-      <div className={`bg-gradient-to-r ${colors.gradient} text-white rounded-t-xl p-4`}>
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <button
-              {...attributes}
-              {...listeners}
-              className="p-1 hover:bg-white/20 rounded cursor-grab active:cursor-grabbing"
-              title="Drag to reorder"
-            >
-              <GripHorizontal className="w-4 h-4" />
-            </button>
-            <div className={`w-3 h-3 ${colors.dot} rounded-full animate-pulse`}></div>
-            <h3 className="font-bold text-base">{stage.name}</h3>
-          </div>
+      <div className="px-4 py-3 flex items-center justify-between border-b border-clay-200">
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => onEditStage(stage)}
-            className="p-1 hover:bg-white/20 rounded-lg transition-colors"
-            title="Edit stage"
+            {...attributes}
+            {...listeners}
+            className="p-1 hover:bg-clay-200 rounded cursor-grab active:cursor-grabbing"
           >
-            <Settings className="w-4 h-4" />
+            <GripVertical className="w-4 h-4 text-clay-400" />
           </button>
+          <div className={`w-2 h-2 rounded-full ${colors.dot}`} />
+          <span className="text-sm font-semibold text-clay-800">{stage.name}</span>
+          <span className="bg-clay-200 px-2 py-0.5 rounded-full text-[11px] text-clay-600">
+            {businesses.length}
+          </span>
         </div>
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-1 text-white/90">
-            <Users className="w-3.5 h-3.5" />
-            <span>{businesses.length} businesses</span>
-          </div>
-          <div className="flex items-center gap-1 font-semibold">
-            <DollarSign className="w-3.5 h-3.5" />
-            <span>${stageValue.toLocaleString()}</span>
-          </div>
-        </div>
+        <button
+          onClick={() => onEditStage(stage)}
+          className="p-1 hover:bg-clay-200 rounded transition-colors text-clay-400 hover:text-clay-600"
+        >
+          <MoreHorizontal className="w-4 h-4" />
+        </button>
       </div>
 
       {/* Business Cards */}
-      <div className="p-3 space-y-3 max-h-[calc(100vh-350px)] overflow-y-auto">
+      <div className="p-3 space-y-3 min-h-[300px] max-h-[calc(100vh-350px)] overflow-y-auto">
         {businesses.length === 0 ? (
           <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-100 rounded-full mb-3">
-              <Building2 className="w-8 h-8 text-slate-400" />
-            </div>
-            <p className="text-slate-500 text-sm font-medium">No businesses yet</p>
-            <p className="text-slate-400 text-xs mt-1">Deals will appear here</p>
+            <Building2 className="w-8 h-8 text-clay-300 mx-auto mb-2" />
+            <p className="text-clay-500 text-sm">No businesses</p>
           </div>
         ) : (
           businesses.map((business) => {
@@ -149,102 +147,59 @@ function SortableStageColumn({
             return (
               <div
                 key={business.id}
-                className="bg-white rounded-xl p-4 shadow-md border border-slate-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer group"
+                className="bg-white border border-clay-200 rounded-lg p-4 cursor-grab hover:shadow-clay-md transition-shadow"
               >
-                <div className="flex items-start gap-3">
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                    <GripVertical className="w-4 h-4 text-slate-400" />
-                  </div>
-                  <div className={`w-12 h-12 flex-shrink-0 bg-gradient-to-br ${colors.gradient} rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-md`}>
-                    {business.business_name.charAt(0).toUpperCase()}
-                  </div>
+                <div className="flex items-start gap-3 mb-3">
+                  <Avatar name={business.business_name} size="md" />
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-slate-900 text-sm truncate group-hover:text-emerald-600 transition-colors">
+                    <h4 className="text-sm font-semibold text-clay-800 truncate">
                       {business.business_name}
                     </h4>
-                    <div className="flex items-center gap-1 text-xs text-slate-500 mt-1">
+                    <div className="flex items-center gap-1 text-xs text-clay-500 mt-0.5">
                       <MapPin className="w-3 h-3" />
-                      <span className="truncate">{business.city || 'Unknown City'}</span>
-                    </div>
-                    {reviewCount > 0 && (
-                      <div className="flex items-center gap-1 mt-2">
-                        <div className="flex items-center">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                              key={star}
-                              className={`w-3 h-3 ${
-                                star <= rating
-                                  ? 'fill-amber-400 text-amber-400'
-                                  : 'text-slate-300'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-xs text-slate-600 font-medium">
-                          {rating.toFixed(1)}
-                        </span>
-                        <span className="text-xs text-slate-400">({reviewCount})</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mt-3 pt-3 border-t border-slate-100">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-600">
-                      <Building2 className="w-3.5 h-3.5" />
-                      <span>{reviewCount} reviews</span>
-                    </div>
-                    <div className="flex items-center gap-1 font-bold text-emerald-600">
-                      <DollarSign className="w-4 h-4" />
-                      <span className="text-sm">{business.total_project_value.toLocaleString()}</span>
+                      <span className="truncate">{business.city || 'Unknown'}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-3">
-                  <div className="relative">
-                    <select
-                      value={business.pipeline_stage}
-                      onChange={(e) =>
-                        onBusinessStageChange(
-                          business.id,
-                          e.target.value as PipelineStage,
-                          business.pipeline_stage
-                        )
-                      }
-                      className="w-full text-xs border-2 border-slate-200 rounded-lg px-3 py-2 bg-slate-50 text-slate-700 font-medium hover:border-emerald-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition-all cursor-pointer appearance-none"
-                    >
-                      {allStages.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                <div className="flex justify-between py-3 border-t border-b border-clay-100 mb-3">
+                  <div>
+                    <div className="text-[11px] text-clay-500">Rating</div>
+                    <div className="text-sm font-semibold text-clay-800 flex items-center gap-1">
+                      <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                      {rating > 0 ? rating.toFixed(1) : '-'}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] text-clay-500">Reviews</div>
+                    <div className="text-sm font-semibold text-clay-800">{reviewCount}</div>
                   </div>
                 </div>
 
-                <div className="mt-3">
-                  <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-                    <span>Deal Progress</span>
-                    <span className="font-medium">
-                      {allStages.findIndex(s => s.id === business.pipeline_stage) + 1} / {allStages.length}
-                    </span>
-                  </div>
-                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full bg-gradient-to-r ${colors.gradient} transition-all duration-500`}
-                      style={{
-                        width: `${((allStages.findIndex(s => s.id === business.pipeline_stage) + 1) / allStages.length) * 100}%`
-                      }}
-                    ></div>
-                  </div>
-                </div>
+                <select
+                  value={business.pipeline_stage}
+                  onChange={(e) =>
+                    onBusinessStageChange(
+                      business.id,
+                      e.target.value as PipelineStage,
+                      business.pipeline_stage
+                    )
+                  }
+                  className="w-full text-xs border border-clay-300 rounded-md px-3 py-1.5 bg-white text-clay-700 focus:outline-none focus:ring-2 focus:ring-clay-300 cursor-pointer"
+                >
+                  {allStages.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             )
           })
         )}
+        <button className="w-full py-2.5 border border-dashed border-clay-300 rounded-lg text-clay-500 text-[13px] hover:border-clay-400 hover:bg-white transition-colors">
+          + Add Business
+        </button>
       </div>
     </div>
   )
@@ -256,6 +211,7 @@ export default function PipelinePage() {
   const [stages, setStages] = useState<CustomStage[]>([])
   const [pipelines, setPipelines] = useState<Pipeline[]>([])
   const [activePipeline, setActivePipeline] = useState<Pipeline | null>(null)
+  const [view, setView] = useState<'List' | 'Board'>('Board')
 
   // Modal states
   const [showCreatePipeline, setShowCreatePipeline] = useState(false)
@@ -281,7 +237,6 @@ export default function PipelinePage() {
   async function loadData() {
     setLoading(true)
 
-    // Load businesses
     const { data: businessData } = await supabase
       .from('businesses')
       .select('*')
@@ -289,7 +244,6 @@ export default function PipelinePage() {
 
     if (businessData) setBusinesses(businessData as Business[])
 
-    // Load pipelines
     const { data: pipelineData } = await supabase
       .from('pipelines')
       .select('*')
@@ -300,7 +254,6 @@ export default function PipelinePage() {
       const defaultPipeline = pipelineData.find(p => p.is_default) || pipelineData[0]
       setActivePipeline(defaultPipeline)
 
-      // Load stages for this pipeline
       const { data: stageData } = await supabase
         .from('pipeline_stages')
         .select('*')
@@ -310,7 +263,6 @@ export default function PipelinePage() {
       if (stageData && stageData.length > 0) {
         setStages(stageData)
       } else {
-        // Use default stages if none exist
         setStages(PIPELINE_STAGES.map((s, i) => ({
           id: s.id,
           name: s.name,
@@ -320,7 +272,6 @@ export default function PipelinePage() {
         })))
       }
     } else {
-      // No pipelines exist, use default stages
       setStages(PIPELINE_STAGES.map((s, i) => ({
         id: s.id,
         name: s.name,
@@ -355,6 +306,7 @@ export default function PipelinePage() {
         b.id === businessId ? { ...b, pipeline_stage: newStage as any } : b
       )
     )
+    toast.success('Stage updated')
   }
 
   async function handleDragEnd(event: DragEndEvent) {
@@ -372,7 +324,6 @@ export default function PipelinePage() {
 
     setStages(newStages)
 
-    // Save to database if we have a pipeline
     if (activePipeline) {
       for (const stage of newStages) {
         await supabase
@@ -425,7 +376,6 @@ export default function PipelinePage() {
       return
     }
 
-    // Move businesses from this stage to the first remaining stage
     const remainingStages = stages.filter((s) => s.id !== editingStage.id)
     const targetStage = remainingStages[0]
 
@@ -464,7 +414,6 @@ export default function PipelinePage() {
       return
     }
 
-    // Create default stages for the new pipeline
     const defaultStages = PIPELINE_STAGES.map((s, i) => ({
       pipeline_id: newPipeline.id,
       name: s.name,
@@ -487,154 +436,84 @@ export default function PipelinePage() {
     return acc
   }, {} as Record<string, Business[]>)
 
-  // Calculate quick stats
+  // Calculate stats
   const totalValue = businesses.reduce((sum, b) => sum + b.total_project_value, 0)
-  const activeDeals = businesses.filter(b => b.pipeline_stage !== 'lead_scraped').length
-
-  const stageColors: Record<string, { bg: string; border: string; dot: string; gradient: string }> = {
-    gray: { bg: 'bg-slate-50', border: 'border-slate-200', dot: 'bg-slate-400', gradient: 'from-slate-500 to-slate-600' },
-    blue: { bg: 'bg-blue-50', border: 'border-blue-200', dot: 'bg-blue-500', gradient: 'from-blue-500 to-blue-600' },
-    yellow: { bg: 'bg-amber-50', border: 'border-amber-200', dot: 'bg-amber-500', gradient: 'from-amber-500 to-amber-600' },
-    green: { bg: 'bg-emerald-50', border: 'border-emerald-200', dot: 'bg-emerald-500', gradient: 'from-emerald-500 to-emerald-600' },
-    purple: { bg: 'bg-purple-50', border: 'border-purple-200', dot: 'bg-purple-500', gradient: 'from-purple-500 to-purple-600' },
-    red: { bg: 'bg-red-50', border: 'border-red-200', dot: 'bg-red-500', gradient: 'from-red-500 to-red-600' },
-    indigo: { bg: 'bg-indigo-50', border: 'border-indigo-200', dot: 'bg-indigo-500', gradient: 'from-indigo-500 to-indigo-600' },
-  }
+  const activeDeals = businesses.filter(b => b.pipeline_stage !== 'lead_scraped' && b.pipeline_stage !== 'cold').length
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-        <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-500 text-white">
-          <div className="max-w-7xl mx-auto px-6 py-8">
-            <div className="h-8 w-48 bg-white/20 rounded-lg animate-pulse mb-4"></div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                  <div className="h-4 w-24 bg-white/20 rounded animate-pulse mb-2"></div>
-                  <div className="h-6 w-32 bg-white/20 rounded animate-pulse"></div>
-                </div>
-              ))}
-            </div>
-          </div>
+      <div className="space-y-6">
+        <div className="h-8 w-32 bg-clay-200 rounded animate-pulse" />
+        <div className="flex gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex-1 h-24 bg-clay-100 border border-clay-200 rounded-lg animate-pulse" />
+          ))}
         </div>
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="flex space-x-4 overflow-x-auto pb-4">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="w-80 flex-shrink-0 bg-white rounded-xl border border-slate-200 p-4">
-                <div className="h-6 w-32 bg-slate-200 rounded animate-pulse mb-4"></div>
-                <div className="space-y-3">
-                  {[1, 2, 3].map(j => (
-                    <div key={j} className="h-32 bg-slate-100 rounded-lg animate-pulse"></div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="flex gap-4 overflow-x-auto pb-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="w-72 flex-shrink-0 bg-clay-100 border border-clay-200 rounded-lg h-96 animate-pulse" />
+          ))}
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      {/* Enhanced Header with Gradient */}
-      <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-500 text-white shadow-xl">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-white/10 backdrop-blur-sm rounded-xl">
-                <Layers className="w-8 h-8" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold">Sales Pipeline</h1>
-                <p className="text-emerald-100 text-sm mt-1">
-                  {activePipeline ? activePipeline.name : 'Track and manage your deals'}
-                </p>
-              </div>
-            </div>
-            <Button
-              onClick={() => setShowCreatePipeline(true)}
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              New Pipeline
-            </Button>
-          </div>
+    <div className="space-y-6">
+      {/* Page Title */}
+      <h1 className="text-2xl font-bold text-clay-900">Pipeline</h1>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-white/10 rounded-lg">
-                  <Building2 className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-emerald-100 text-xs font-medium">Total Businesses</p>
-                  <p className="text-2xl font-bold">{businesses.length}</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-white/10 rounded-lg">
-                  <TrendingUp className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-emerald-100 text-xs font-medium">Active Deals</p>
-                  <p className="text-2xl font-bold">{activeDeals}</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-white/10 rounded-lg">
-                  <DollarSign className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-emerald-100 text-xs font-medium">Pipeline Value</p>
-                  <p className="text-2xl font-bold">${totalValue.toLocaleString()}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Stats Row */}
+      <div className="flex gap-4 flex-wrap">
+        <StatCard label="Total Businesses" value={businesses.length.toString()} icon="🏢" />
+        <StatCard label="Active Deals" value={activeDeals.toString()} icon="🔥" />
+        <StatCard label="Pipeline Value" value={`$${totalValue.toLocaleString()}`} icon="💰" />
       </div>
 
-      {/* Pipeline Kanban with Drag & Drop */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="overflow-x-auto pb-4">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={stages.map((s) => s.id)}
-              strategy={horizontalListSortingStrategy}
-            >
-              <div className="flex space-x-4" style={{ minWidth: 'max-content' }}>
-                {stages.map((stage) => {
-                  const stageBusinesses = businessesByStage[stage.id] || []
-                  const stageValue = stageBusinesses.reduce((sum, b) => sum + b.total_project_value, 0)
-                  const colors = stageColors[stage.color] || stageColors.gray
+      {/* View Toggle and Actions */}
+      <div className="flex items-center justify-between">
+        <ViewToggle
+          views={['List', 'Board']}
+          active={view}
+          onChange={(v) => setView(v as 'List' | 'Board')}
+        />
+        <Button variant="primary" onClick={() => setShowCreatePipeline(true)}>
+          <Plus className="w-4 h-4 mr-1" />
+          New Pipeline
+        </Button>
+      </div>
 
-                  return (
-                    <SortableStageColumn
-                      key={stage.id}
-                      stage={stage}
-                      businesses={stageBusinesses}
-                      stageValue={stageValue}
-                      colors={colors}
-                      onBusinessStageChange={handleStageChange}
-                      onEditStage={handleEditStage}
-                      allStages={stages}
-                    />
-                  )
-                })}
-              </div>
-            </SortableContext>
-          </DndContext>
-        </div>
+      {/* Pipeline Kanban Board */}
+      <div className="overflow-x-auto pb-4">
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={stages.map((s) => s.id)}
+            strategy={horizontalListSortingStrategy}
+          >
+            <div className="flex gap-5" style={{ minWidth: 'max-content' }}>
+              {stages.map((stage) => {
+                const stageBusinesses = businessesByStage[stage.id] || []
+                const stageValue = stageBusinesses.reduce((sum, b) => sum + b.total_project_value, 0)
+
+                return (
+                  <SortableStageColumn
+                    key={stage.id}
+                    stage={stage}
+                    businesses={stageBusinesses}
+                    stageValue={stageValue}
+                    onBusinessStageChange={handleStageChange}
+                    onEditStage={handleEditStage}
+                    allStages={stages}
+                  />
+                )
+              })}
+            </div>
+          </SortableContext>
+        </DndContext>
       </div>
 
       {/* Create Pipeline Modal */}
@@ -695,16 +574,16 @@ function CreatePipelineModal({
           required
         />
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+          <label className="block text-sm font-medium text-clay-700 mb-1.5">Description</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 h-24 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className="w-full px-3 py-2 rounded-md border border-clay-300 h-24 resize-none focus:outline-none focus:ring-2 focus:ring-clay-400 focus:border-transparent text-sm"
             placeholder="Describe this pipeline..."
           />
         </div>
-        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-          <Button variant="ghost" onClick={onClose} type="button">
+        <div className="flex justify-end gap-3 pt-4 border-t border-clay-200">
+          <Button variant="secondary" onClick={onClose} type="button">
             Cancel
           </Button>
           <Button type="submit" disabled={isSaving || !name.trim()}>
@@ -761,13 +640,12 @@ function EditStageModal({
   }
 
   const colorOptions = [
-    { id: 'gray', label: 'Gray', bg: 'bg-slate-500' },
-    { id: 'blue', label: 'Blue', bg: 'bg-blue-500' },
-    { id: 'yellow', label: 'Yellow', bg: 'bg-amber-500' },
-    { id: 'green', label: 'Green', bg: 'bg-emerald-500' },
-    { id: 'purple', label: 'Purple', bg: 'bg-purple-500' },
-    { id: 'red', label: 'Red', bg: 'bg-red-500' },
-    { id: 'indigo', label: 'Indigo', bg: 'bg-indigo-500' },
+    { id: 'gray', bg: 'bg-clay-500' },
+    { id: 'blue', bg: 'bg-status-blue-dot' },
+    { id: 'yellow', bg: 'bg-status-yellow-dot' },
+    { id: 'green', bg: 'bg-status-green-dot' },
+    { id: 'purple', bg: 'bg-status-purple-dot' },
+    { id: 'red', bg: 'bg-status-red-dot' },
   ]
 
   return (
@@ -781,29 +659,33 @@ function EditStageModal({
           required
         />
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Stage Color</label>
-          <div className="grid grid-cols-7 gap-2">
+          <label className="block text-sm font-medium text-clay-700 mb-2">Stage Color</label>
+          <div className="flex gap-2">
             {colorOptions.map((opt) => (
               <button
                 key={opt.id}
                 type="button"
                 onClick={() => setColor(opt.id)}
-                className={`w-10 h-10 rounded-lg ${opt.bg} flex items-center justify-center transition-all ${
-                  color === opt.id ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : 'hover:scale-105'
+                className={`w-8 h-8 rounded-lg ${opt.bg} flex items-center justify-center transition-all ${
+                  color === opt.id ? 'ring-2 ring-offset-2 ring-clay-500 scale-110' : 'hover:scale-105'
                 }`}
               >
-                {color === opt.id && <Check className="w-5 h-5 text-white" />}
+                {color === opt.id && <Check className="w-4 h-4 text-white" />}
               </button>
             ))}
           </div>
         </div>
-        <div className="flex justify-between pt-4 border-t border-gray-200">
-          <Button variant="danger" onClick={onDelete} type="button">
-            <Trash2 className="w-4 h-4 mr-2" />
+        <div className="flex justify-between pt-4 border-t border-clay-200">
+          <button
+            type="button"
+            onClick={onDelete}
+            className="text-sm text-red-600 hover:text-red-700 flex items-center gap-1"
+          >
+            <Trash2 className="w-4 h-4" />
             Delete Stage
-          </Button>
+          </button>
           <div className="flex gap-3">
-            <Button variant="ghost" onClick={onClose} type="button">
+            <Button variant="secondary" onClick={onClose} type="button">
               Cancel
             </Button>
             <Button type="submit" disabled={isSaving || !name.trim()}>

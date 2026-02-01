@@ -6,9 +6,9 @@ import Link from 'next/link';
 import { supabase, businessQueries, campaignSequenceQueries } from '@/lib/supabase';
 import { Campaign, Business, PlusvibeExportRow, CampaignSequence } from '@/types';
 import { CellState, BatchProgress } from '@/types/campaign';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/Modal';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import {
   Badge,
   Avatar,

@@ -5,8 +5,8 @@ import Papa from 'papaparse'
 import { supabase, tagQueries } from '@/lib/supabase'
 import { D7FieldMapping, Tag } from '@/types'
 import { Modal } from './ui/Modal'
-import { Button } from './ui/Button'
-import { Select } from './ui/Select'
+import { Button } from './ui/button'
+import { SimpleSelect } from './ui/select'
 import { toast } from 'sonner'
 
 // Predefined tag colors
@@ -439,7 +439,7 @@ export function ImportModal({ onClose, onImportComplete }: ImportModalProps) {
             {/* Field Mappings */}
             <div className="grid grid-cols-2 gap-4">
               {(Object.keys(DEFAULT_MAPPINGS) as (keyof D7FieldMapping)[]).map(field => (
-                <Select
+                <SimpleSelect
                   key={field}
                   label={field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                   value={mappings[field]}

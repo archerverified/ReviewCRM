@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Modal } from '@/components/ui/Modal';
-import { Input } from '@/components/ui/Input';
-import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { supabase, businessQueries } from '@/lib/supabase';
 import type { Business, ContactCategory } from '@/types';
 import { CONTACT_CATEGORIES } from '@/types';

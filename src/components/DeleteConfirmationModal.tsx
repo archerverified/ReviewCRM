@@ -1,7 +1,7 @@
 'use client';
 
 import { Modal } from '@/components/ui/Modal';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Business } from '@/types';
 
 interface DeleteConfirmationModalProps {

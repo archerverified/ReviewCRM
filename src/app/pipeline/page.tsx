@@ -35,9 +35,10 @@ import {
   MoreHorizontal,
 } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { StatCard, Badge, Avatar, ViewToggle } from '@/components/ui'
+import { HoverCard } from '@/components/ui/HoverCard'
 import { toast } from 'sonner'
 
 interface CustomStage {
@@ -145,7 +146,7 @@ function SortableStageColumn({
             const reviewCount = business.total_media_reviews || 0
 
             return (
-              <div
+              <HoverCard
                 key={business.id}
                 className="bg-white border border-clay-200 rounded-lg p-4 cursor-grab hover:shadow-clay-md transition-shadow"
               >
@@ -193,7 +194,7 @@ function SortableStageColumn({
                     </option>
                   ))}
                 </select>
-              </div>
+              </HoverCard>
             )
           })
         )}

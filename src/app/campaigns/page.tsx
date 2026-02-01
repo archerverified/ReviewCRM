@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { Button } from '@/components/ui/Button'
-import { Tab, Badge, Avatar, StatCard } from '@/components/ui'
+import { Button } from '@/components/ui/button'
+import { Badge, Avatar, StatCard } from '@/components/ui'
+import { AnimatedBackground, TextShimmer } from '@/components/motion-primitives'
 import { Campaign } from '@/types'
 import { toast } from 'sonner'
 import {
@@ -86,7 +87,7 @@ export default function CampaignsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="h-8 w-32 bg-clay-200 rounded animate-pulse" />
+        <TextShimmer className="text-2xl font-bold" duration={1.5}>Loading Campaigns...</TextShimmer>
         <div className="flex gap-4">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="flex-1 h-24 bg-clay-100 border border-clay-200 rounded-lg animate-pulse" />
@@ -101,37 +102,50 @@ export default function CampaignsPage() {
       {/* Page Title */}
       <h1 className="text-2xl font-bold text-clay-900">Campaigns</h1>
 
-      {/* Stats Row */}
+      {/* Stats Row with animation */}
       <div className="flex gap-4 flex-wrap">
-        <StatCard label="Total Campaigns" value={displayCampaigns.length.toString()} icon="📧" />
-        <StatCard label="Active" value={activeCampaigns.toString()} icon="▶️" />
-        <StatCard label="Total Sent" value={totalSent.toString()} icon="✉️" />
+        <StatCard label="Total Campaigns" value={displayCampaigns.length} icon="📧" animate />
+        <StatCard label="Active" value={activeCampaigns} icon="▶️" highlight={activeCampaigns > 0} animate />
+        <StatCard label="Total Sent" value={totalSent} icon="✉️" animate />
         <StatCard label="Avg Reply Rate" value={avgReplyRate} icon="↩️" />
       </div>
 
-      {/* Tabs */}
+      {/* Tabs with AnimatedBackground */}
       <div className="bg-white border-b border-clay-200 -mx-8 px-8">
-        <div className="flex">
-          <Tab
-            active={activeTab === 'sequences'}
-            count={displayCampaigns.length}
-            onClick={() => setActiveTab('sequences')}
-          >
-            Sequences
-          </Tab>
-          <Tab
-            active={activeTab === 'accounts'}
-            onClick={() => setActiveTab('accounts')}
-          >
-            Email Accounts
-          </Tab>
-          <Tab
-            active={activeTab === 'blocklist'}
-            onClick={() => setActiveTab('blocklist')}
-          >
-            Global Blocklist
-          </Tab>
-        </div>
+        <AnimatedBackground
+          defaultValue={activeTab}
+          className="rounded-lg bg-muted"
+          transition={{ type: 'spring', bounce: 0.2, duration: 0.3 }}
+          enableHover
+        >
+          {[
+            { id: 'sequences', label: 'Sequences', count: displayCampaigns.length },
+            { id: 'accounts', label: 'Email Accounts' },
+            { id: 'blocklist', label: 'Global Blocklist' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              data-id={tab.id}
+              onClick={() => setActiveTab(tab.id as TabType)}
+              className={`px-4 py-3 text-sm flex items-center gap-2 transition-colors ${
+                activeTab === tab.id
+                  ? 'text-clay-900 font-semibold'
+                  : 'text-clay-500 hover:text-clay-700'
+              }`}
+            >
+              {tab.label}
+              {tab.count !== undefined && (
+                <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                  activeTab === tab.id
+                    ? 'bg-clay-900 text-white'
+                    : 'bg-clay-200 text-clay-600'
+                }`}>
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </AnimatedBackground>
       </div>
 
       {/* Actions */}

@@ -19,7 +19,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Business } from '@/types';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { BusinessDetailModal } from '@/components/BusinessDetailModal';
 import { DeleteConfirmationModal } from '@/components/DeleteConfirmationModal';
 

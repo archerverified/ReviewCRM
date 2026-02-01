@@ -3,8 +3,8 @@
 import { Menu, Transition } from '@headlessui/react'
 import { Fragment } from 'react'
 import { FilterState, Tag, PIPELINE_STAGES, EMAIL_VERIFICATION_STATUSES, EMAIL_OUTREACH_STATUSES, PipelineStage, EmailVerificationStatus, EmailOutreachStatus } from '@/types'
-import { Input } from './ui/Input'
-import { Button } from './ui/Button'
+import { Input } from './ui/input'
+import { Button } from './ui/button'
 import { cn } from '@/lib/utils'
 
 interface FilterBarProps {

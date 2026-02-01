@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Button } from './Button';
+import { Button } from './button';
 
 interface CustomFieldInputProps {
   onSave: (name: string) => void;

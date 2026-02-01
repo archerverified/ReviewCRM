@@ -69,11 +69,11 @@ export function Sidebar() {
                     href={item.href}
                     className={`
                       flex items-center gap-3 px-3 py-2.5 rounded-md text-sm
-                      transition-all duration-100 -ml-0.5
+                      transition-all duration-100
                       ${
                         isActive
-                          ? 'bg-clay-100 text-clay-900 border-l-2 border-clay-900'
-                          : 'text-clay-600 hover:bg-clay-50 border-l-2 border-transparent'
+                          ? 'bg-clay-100 text-clay-900'
+                          : 'text-clay-600 hover:bg-clay-50'
                       }
                     `}
                   >

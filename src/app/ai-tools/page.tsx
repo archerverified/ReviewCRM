@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/Modal';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import { StatCard } from '@/components/ui/StatCard';
-import { Badge } from '@/components/ui/Badge';
+import { Badge } from '@/components/ui/badge';
+import { TextShimmer } from '@/components/motion-primitives';
+import { HoverCard } from '@/components/ui/HoverCard';
 import { aiAgentQueries, aiApiKeyQueries } from '@/lib/supabase';
 import type { AIAgent, AIApiKey, AIApiKeyProvider, AIAgentStatus } from '@/types';
 import { AI_AGENT_STATUSES, AI_API_KEY_PROVIDERS } from '@/types';
@@ -394,8 +396,9 @@ export default function AIToolsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
+      <div className="flex flex-col items-center justify-center h-96 gap-4">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-clay-600"></div>
+        <TextShimmer className="text-sm font-medium" duration={1.5}>Loading AI Tools...</TextShimmer>
       </div>
     );
   }
@@ -472,7 +475,7 @@ export default function AIToolsPage() {
       </div>
 
       {/* Create Agent Section */}
-      <div className="bg-clay-50 rounded-lg border border-clay-200 p-6">
+      <HoverCard className="bg-clay-50 rounded-lg border border-clay-200 p-6">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-8 h-8 rounded-lg bg-clay-200 flex items-center justify-center">
             <svg className="w-4 h-4 text-clay-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -511,7 +514,7 @@ export default function AIToolsPage() {
             </Button>
           </div>
         </div>
-      </div>
+      </HoverCard>
 
       {/* Quick Start Templates */}
       <div>
@@ -531,26 +534,30 @@ export default function AIToolsPage() {
             ];
 
             return (
-              <button
+              <HoverCard
                 key={index}
-                onClick={() => handleCreateFromTemplate(template)}
                 className="text-left bg-white rounded-lg border border-clay-200 p-4 hover:border-clay-400 hover:shadow-sm transition-all group"
               >
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-clay-100 flex items-center justify-center text-clay-600 group-hover:bg-clay-200 transition-colors">
-                    {icons[index]}
+                <button
+                  onClick={() => handleCreateFromTemplate(template)}
+                  className="w-full text-left"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-clay-100 flex items-center justify-center text-clay-600 group-hover:bg-clay-200 transition-colors">
+                      {icons[index]}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-clay-900 text-sm group-hover:text-clay-700">
+                        {template.name}
+                      </h4>
+                      <p className="text-[12px] text-clay-500 mt-1 line-clamp-2">{template.description}</p>
+                    </div>
+                    <svg className="w-4 h-4 text-clay-300 group-hover:text-clay-500 transition-colors flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-clay-900 text-sm group-hover:text-clay-700">
-                      {template.name}
-                    </h4>
-                    <p className="text-[12px] text-clay-500 mt-1 line-clamp-2">{template.description}</p>
-                  </div>
-                  <svg className="w-4 h-4 text-clay-300 group-hover:text-clay-500 transition-colors flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                </div>
-              </button>
+                </button>
+              </HoverCard>
             );
           })}
         </div>
@@ -580,23 +587,27 @@ export default function AIToolsPage() {
             ];
 
             return (
-              <button
+              <HoverCard
                 key={index}
-                onClick={() => handleCreateFromTemplate(template)}
                 className="text-left bg-white rounded-lg border border-clay-200 p-4 hover:border-clay-400 hover:shadow-sm transition-all group"
               >
-                <div className="flex flex-col gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-clay-100 flex items-center justify-center text-clay-600 group-hover:bg-clay-200 transition-colors">
-                    {icons[index]}
+                <button
+                  onClick={() => handleCreateFromTemplate(template)}
+                  className="w-full text-left"
+                >
+                  <div className="flex flex-col gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-clay-100 flex items-center justify-center text-clay-600 group-hover:bg-clay-200 transition-colors">
+                      {icons[index]}
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-clay-900 text-sm group-hover:text-clay-700">
+                        {template.name}
+                      </h4>
+                      <p className="text-[12px] text-clay-500 mt-1 line-clamp-2">{template.description}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-medium text-clay-900 text-sm group-hover:text-clay-700">
-                      {template.name}
-                    </h4>
-                    <p className="text-[12px] text-clay-500 mt-1 line-clamp-2">{template.description}</p>
-                  </div>
-                </div>
-              </button>
+                </button>
+              </HoverCard>
             );
           })}
         </div>
@@ -628,7 +639,7 @@ export default function AIToolsPage() {
               const isDraft = agent.status === 'draft';
 
               return (
-                <div
+                <HoverCard
                   key={agent.id}
                   className={`bg-white rounded-lg border p-4 hover:shadow-sm transition-all group ${
                     isActive ? 'border-status-green-dot/30' :
@@ -732,7 +743,7 @@ export default function AIToolsPage() {
                       </button>
                     </div>
                   </div>
-                </div>
+                </HoverCard>
               );
             })}
           </div>

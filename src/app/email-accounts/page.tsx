@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/Modal';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import { StatCard, Badge } from '@/components/ui';
 import { emailAccountQueries } from '@/lib/supabase';
 import type { EmailAccount, EmailAccountProvider, EmailAccountStatus } from '@/types';

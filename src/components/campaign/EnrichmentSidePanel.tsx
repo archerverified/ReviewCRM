@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { EnrichmentType, EnrichmentOption, ENRICHMENT_OPTIONS, PROMPT_VARIABLES } from '@/types/campaign';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface EnrichmentSidePanelProps {
   isOpen: boolean;

@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Business, Campaign, PIPELINE_STAGES } from '@/types'
 import { StatCard, Badge } from '@/components/ui'
+import { TextShimmer } from '@/components/motion-primitives'
+import { HoverCard } from '@/components/ui/HoverCard'
 
 interface MetricCard {
   label: string
@@ -97,8 +99,9 @@ export default function MetricsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
+      <div className="flex flex-col items-center justify-center h-96 gap-4">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-clay-600"></div>
+        <TextShimmer className="text-sm font-medium" duration={1.5}>Loading Metrics...</TextShimmer>
       </div>
     )
   }
@@ -129,28 +132,28 @@ export default function MetricsPage() {
 
       {/* Quick Summary Cards */}
       <div className="grid grid-cols-4 gap-4">
-        <div className="bg-clay-50 rounded-lg p-4 border border-clay-200">
+        <HoverCard className="bg-clay-50 rounded-lg p-4 border border-clay-200">
           <div className="text-[11px] font-medium text-clay-500 uppercase tracking-wide mb-1">Pipeline Value</div>
           <div className="text-2xl font-semibold text-clay-900">${(totalPipelineValue / 1000).toFixed(0)}K</div>
-        </div>
-        <div className="bg-clay-50 rounded-lg p-4 border border-clay-200">
+        </HoverCard>
+        <HoverCard className="bg-clay-50 rounded-lg p-4 border border-clay-200">
           <div className="text-[11px] font-medium text-clay-500 uppercase tracking-wide mb-1">Active Leads</div>
           <div className="text-2xl font-semibold text-clay-900">{totalBusinesses}</div>
-        </div>
-        <div className="bg-clay-50 rounded-lg p-4 border border-clay-200">
+        </HoverCard>
+        <HoverCard className="bg-clay-50 rounded-lg p-4 border border-clay-200">
           <div className="text-[11px] font-medium text-clay-500 uppercase tracking-wide mb-1">Closed Deals</div>
           <div className="text-2xl font-semibold text-clay-900">{dealsClosed}</div>
-        </div>
-        <div className="bg-clay-50 rounded-lg p-4 border border-clay-200">
+        </HoverCard>
+        <HoverCard className="bg-clay-50 rounded-lg p-4 border border-clay-200">
           <div className="text-[11px] font-medium text-clay-500 uppercase tracking-wide mb-1">Campaigns</div>
           <div className="text-2xl font-semibold text-clay-900">{totalCampaigns}</div>
-        </div>
+        </HoverCard>
       </div>
 
       {/* Primary Metrics */}
       <div className="grid grid-cols-4 gap-4">
         {primaryMetrics.map((metric) => (
-          <div
+          <HoverCard
             key={metric.label}
             className="bg-white rounded-lg border border-clay-200 p-5 hover:border-clay-300 transition-colors"
           >
@@ -188,14 +191,14 @@ export default function MetricsPage() {
             {metric.subValue && (
               <div className="text-[11px] text-clay-400 mt-1">{metric.subValue}</div>
             )}
-          </div>
+          </HoverCard>
         ))}
       </div>
 
       {/* Pipeline Funnel & Email Quality */}
       <div className="grid grid-cols-2 gap-6">
         {/* Pipeline Funnel */}
-        <div className="bg-white rounded-lg border border-clay-200 p-5">
+        <HoverCard className="bg-white rounded-lg border border-clay-200 p-5">
           <div className="flex items-center gap-2 mb-5">
             <div className="w-6 h-6 rounded bg-clay-100 flex items-center justify-center">
               <svg className="w-3.5 h-3.5 text-clay-500" fill="currentColor" viewBox="0 0 20 20">
@@ -230,10 +233,10 @@ export default function MetricsPage() {
               )
             })}
           </div>
-        </div>
+        </HoverCard>
 
         {/* Email Quality */}
-        <div className="bg-white rounded-lg border border-clay-200 p-5">
+        <HoverCard className="bg-white rounded-lg border border-clay-200 p-5">
           <div className="flex items-center gap-2 mb-5">
             <div className="w-6 h-6 rounded bg-clay-100 flex items-center justify-center">
               <svg className="w-3.5 h-3.5 text-clay-500" fill="currentColor" viewBox="0 0 20 20">
@@ -304,11 +307,11 @@ export default function MetricsPage() {
               <div className="text-[11px] font-medium text-clay-500">Unverified</div>
             </div>
           </div>
-        </div>
+        </HoverCard>
       </div>
 
       {/* Pricing Tiers */}
-      <div className="bg-white rounded-lg border border-clay-200 p-5">
+      <HoverCard className="bg-white rounded-lg border border-clay-200 p-5">
         <div className="flex items-center gap-2 mb-5">
           <div className="w-6 h-6 rounded bg-clay-100 flex items-center justify-center">
             <svg className="w-3.5 h-3.5 text-clay-500" fill="currentColor" viewBox="0 0 20 20">
@@ -366,10 +369,10 @@ export default function MetricsPage() {
             </div>
           </div>
         </div>
-      </div>
+      </HoverCard>
 
       {/* Stage Breakdown Grid */}
-      <div className="bg-white rounded-lg border border-clay-200 p-5">
+      <HoverCard className="bg-white rounded-lg border border-clay-200 p-5">
         <div className="flex items-center gap-2 mb-5">
           <div className="w-6 h-6 rounded bg-clay-100 flex items-center justify-center">
             <svg className="w-3.5 h-3.5 text-clay-500" fill="currentColor" viewBox="0 0 20 20">
@@ -418,7 +421,7 @@ export default function MetricsPage() {
             )
           })}
         </div>
-      </div>
+      </HoverCard>
     </div>
   )
 }

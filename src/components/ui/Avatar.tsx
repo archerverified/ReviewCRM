@@ -1,53 +1,104 @@
-'use client';
+"use client"
 
-import { cn } from '@/lib/utils';
+import * as React from "react"
+import * as AvatarPrimitive from "@radix-ui/react-avatar"
 
-const AVATAR_COLORS = [
-  'bg-red-500',
-  'bg-orange-500',
-  'bg-amber-500',
-  'bg-green-500',
-  'bg-teal-500',
-  'bg-blue-500',
-  'bg-indigo-500',
-  'bg-purple-500',
-  'bg-pink-500',
-];
+import { cn } from "@/lib/utils"
 
-interface AvatarProps {
-  name: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
-  className?: string;
+// Size variants for backwards compatibility
+const sizeClasses = {
+  sm: "h-8 w-8 text-xs",
+  md: "h-10 w-10 text-sm",
+  lg: "h-12 w-12 text-base",
 }
 
-const sizeStyles = {
-  sm: 'w-6 h-6 text-[10px]',
-  md: 'w-8 h-8 text-xs',
-  lg: 'w-10 h-10 text-sm',
-  xl: 'w-12 h-12 text-base',
-};
+// Extended Avatar props for backwards compatibility
+interface AvatarProps extends React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root> {
+  name?: string
+  size?: "sm" | "md" | "lg"
+  src?: string
+}
 
-export function Avatar({ name, size = 'md', className }: AvatarProps) {
-  const initials = name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .substring(0, 2)
-    .toUpperCase();
+const Avatar = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Root>,
+  AvatarProps
+>(({ className, name, size = "md", src, children, ...props }, ref) => {
+  // If name is provided, render with fallback (backwards compatible mode)
+  if (name) {
+    const initials = name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
 
-  const colorIndex = name.charCodeAt(0) % AVATAR_COLORS.length;
-  const colorClass = AVATAR_COLORS[colorIndex];
+    return (
+      <AvatarPrimitive.Root
+        ref={ref}
+        className={cn(
+          "relative flex shrink-0 overflow-hidden rounded-full",
+          sizeClasses[size],
+          className
+        )}
+        {...props}
+      >
+        {src && (
+          <AvatarPrimitive.Image
+            src={src}
+            alt={name}
+            className="aspect-square h-full w-full"
+          />
+        )}
+        <AvatarPrimitive.Fallback
+          className="flex h-full w-full items-center justify-center rounded-full bg-muted font-medium"
+        >
+          {initials}
+        </AvatarPrimitive.Fallback>
+      </AvatarPrimitive.Root>
+    )
+  }
 
+  // Standard ShadCN usage
   return (
-    <div
+    <AvatarPrimitive.Root
+      ref={ref}
       className={cn(
-        'rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0',
-        sizeStyles[size],
-        colorClass,
+        "relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full",
         className
       )}
+      {...props}
     >
-      {initials}
-    </div>
-  );
-}
+      {children}
+    </AvatarPrimitive.Root>
+  )
+})
+Avatar.displayName = AvatarPrimitive.Root.displayName
+
+const AvatarImage = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Image>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Image
+    ref={ref}
+    className={cn("aspect-square h-full w-full", className)}
+    {...props}
+  />
+))
+AvatarImage.displayName = AvatarPrimitive.Image.displayName
+
+const AvatarFallback = React.forwardRef<
+  React.ElementRef<typeof AvatarPrimitive.Fallback>,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
+>(({ className, ...props }, ref) => (
+  <AvatarPrimitive.Fallback
+    ref={ref}
+    className={cn(
+      "flex h-full w-full items-center justify-center rounded-full bg-muted",
+      className
+    )}
+    {...props}
+  />
+))
+AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName
+
+export { Avatar, AvatarImage, AvatarFallback }

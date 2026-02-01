@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from './ui/Button';
+import { Button } from './ui/button';
 import { exportToPlusvibe, downloadCSV, generateExportFilename } from '@/lib/export';
 import type { Business } from '@/types';
 import { toast } from 'sonner';
